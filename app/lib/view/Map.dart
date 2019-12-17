@@ -21,13 +21,28 @@ class MyMapState extends State<MyMap> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
-        mapType: MapType.normal,
-        initialCameraPosition: _emmenPosition,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-      ),
+      body: Stack(
+        children: <Widget>[
+          GoogleMap(
+            mapType: MapType.normal,
+            initialCameraPosition: _emmenPosition,
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
+            },
+          ),
+          Container(
+            margin: EdgeInsets.fromLTRB(5, 5, 5, 0),
+            height: 40,
+            color: Colors.white,
+            child: TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Search location',
+              ),
+            ),
+          ),
+        ],
+      )
       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
