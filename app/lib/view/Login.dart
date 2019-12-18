@@ -125,7 +125,7 @@ class LoginState extends State<Login> {
                       },
                       hoverColor: Colors.teal,
                       child: Center(
-                        child: Text('Wanna suck a dick? Sign up',
+                        child: Text('Don\'t have an account? Sign up',
                             style: TextStyle(
                                 fontSize: 18.0,
                                 fontWeight: FontWeight.w300,
