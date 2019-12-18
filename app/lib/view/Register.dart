@@ -12,6 +12,10 @@ class RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+          preferredSize: Size.fromHeight(0.0),
+          child: AppBar()
+      ),
       body: Center(
         child: Form(
           child: SingleChildScrollView(
