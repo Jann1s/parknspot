@@ -11,7 +11,8 @@ class ParkingState extends State<Parking> {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(35),
-      child: Column(
+      child: Center(child:  
+      Column(
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -107,6 +108,7 @@ class ParkingState extends State<Parking> {
           ],)
         ],
       ),
+      )
     );
   }
 }
