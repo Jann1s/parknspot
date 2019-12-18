@@ -39,7 +39,7 @@ class MyAppState extends State<MyApp> {
             BottomNavigationBarItem(
                 icon: Icon(Icons.local_parking), title: Text('Parking')),
             BottomNavigationBarItem(
-                icon: Icon(Icons.directions), title: Text('Map')),
+                icon: Icon(Icons.map), title: Text('Map')),
             BottomNavigationBarItem(
                 icon: Icon(Icons.supervised_user_circle),
                 title: Text('Profile')),
