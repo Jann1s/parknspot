@@ -39,7 +39,7 @@ class LoginState extends State<Login> {
                         ],
                       ),
                       child: Image.asset(
-                        'assets/logoNoBorder.png',
+                        'assets/loginAnimation.gif',
                         height: 100,
                         width: 100,
                       ),
