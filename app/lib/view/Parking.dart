@@ -10,17 +10,95 @@ class ParkingState extends State<Parking> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      alignment: Alignment.center,
       padding: EdgeInsets.all(35),
-      child: Center(child:  
-      Column(
-        children: <Widget>[
-          Row(
-            children: <Widget>[
+      child: Center(
+        child: Column(
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: FlatButton(
+                    child: Text(
+                      'Set location',
+                      style: TextStyle(fontSize: 35.0)
+                    ),
+                    color: Colors.green,
+                    textColor: Colors.white,
+                    padding: EdgeInsets.all(10),
+                    onPressed: (){}
+                  ),
+                )
+              ],
+            ),
+            Expanded(child: Divider(
+              color: Colors.green,
+              thickness: 5,
+              indent: 20,
+              endIndent: 20,
+              height: 35,
+            )),
+            Expanded(child: Row(children: <Widget>[
+              Expanded(
+                child: Text('Set availability:', style: TextStyle(fontSize: 20),),
+              )
+            ],)),
+            Expanded(child: Row(children: <Widget>[
+              Expanded(
+                child: FlatButton(
+                  color: Colors.grey,
+                  textColor: Colors.white,
+                  child: Text('Full', style: TextStyle(fontSize: 15),), 
+                  onPressed: () {},
+                ),
+              )
+            ],)),
+            Expanded(child:Row(children: <Widget>[
+              Expanded(
+                child: FlatButton(
+                  color: Colors.grey,
+                  textColor: Colors.white,
+                  child: Text('1 - 4 available spots', style: TextStyle(fontSize: 15)), 
+                  onPressed: () {},
+                ),
+              )
+            ],)),
+            Expanded(child:Row(children: <Widget>[
+              Expanded(
+                child: FlatButton(
+                  color: Colors.grey,
+                  textColor: Colors.white,
+                  child: Text('5 - 10 available spots', style: TextStyle(fontSize: 15)), 
+                  onPressed: () {},
+                ),
+              )
+            ],)),
+            Expanded(child:Row(children: <Widget>[
+              Expanded(
+                child: FlatButton(
+                  color: Colors.grey,
+                  textColor: Colors.white,
+                  child: Text('11 - 20 available spots', style: TextStyle(fontSize: 15)), 
+                  onPressed: () {},
+                ),
+              )
+            ],)),
+            Expanded(child:Row(children: <Widget>[
+              Expanded(
+                child: FlatButton(
+                  color: Colors.grey,
+                  textColor: Colors.white,
+                  child: Text('21+ available spots', style: TextStyle(fontSize: 15)), 
+                  onPressed: () {},
+                ),
+              )
+            ],)),
+            Expanded(child:Row(children: <Widget>[
               Expanded(
                 child: FlatButton(
                   child: Text(
-                    'Set location',
-                    style: TextStyle(fontSize: 35.0)
+                    'Confirm',
+                    style: TextStyle(fontSize: 20.0)
                   ),
                   color: Colors.green,
                   textColor: Colors.white,
@@ -29,83 +107,7 @@ class ParkingState extends State<Parking> {
                 ),
               )
             ],
-          ),
-          Divider(
-            color: Colors.green,
-            thickness: 5,
-            indent: 20,
-            endIndent: 20,
-            height: 35,
-          ),
-          Row(children: <Widget>[
-            Expanded(
-              child: Text('Set availability:', style: TextStyle(fontSize: 20),),
-            )
-          ],),
-          Row(children: <Widget>[
-            Expanded(
-              child: FlatButton(
-                color: Colors.grey,
-                textColor: Colors.white,
-                child: Text('Full', style: TextStyle(fontSize: 15),), 
-                onPressed: () {},
-              ),
-            )
-          ],),
-          Row(children: <Widget>[
-            Expanded(
-              child: FlatButton(
-                color: Colors.grey,
-                textColor: Colors.white,
-                child: Text('1 - 4 available spots', style: TextStyle(fontSize: 15)), 
-                onPressed: () {},
-              ),
-            )
-          ],),
-          Row(children: <Widget>[
-            Expanded(
-              child: FlatButton(
-                color: Colors.grey,
-                textColor: Colors.white,
-                child: Text('5 - 10 available spots', style: TextStyle(fontSize: 15)), 
-                onPressed: () {},
-              ),
-            )
-          ],),
-          Row(children: <Widget>[
-            Expanded(
-              child: FlatButton(
-                color: Colors.grey,
-                textColor: Colors.white,
-                child: Text('11 - 20 available spots', style: TextStyle(fontSize: 15)), 
-                onPressed: () {},
-              ),
-            )
-          ],),
-          Row(children: <Widget>[
-            Expanded(
-              child: FlatButton(
-                color: Colors.grey,
-                textColor: Colors.white,
-                child: Text('21+ available spots', style: TextStyle(fontSize: 15)), 
-                onPressed: () {},
-              ),
-            )
-          ],),
-          Row(children: <Widget>[
-            Expanded(
-              child: FlatButton(
-                child: Text(
-                  'Confirm',
-                  style: TextStyle(fontSize: 20.0)
-                ),
-                color: Colors.green,
-                textColor: Colors.white,
-                padding: EdgeInsets.all(10),
-                onPressed: (){}
-              ),
-            )
-          ],)
+          ))
         ],
       ),
       )
