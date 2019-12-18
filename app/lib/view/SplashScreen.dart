@@ -8,9 +8,9 @@ class SplashScreen extends StatefulWidget {
   }
 }
 
-class SplashScreenState extends State<SplashScreen> {
+class SplashScreenState extends State<MyApp> {
   
-  int splashScreenDuration = 6; // time in seconds
+  int splashScreenDuration = 4; // time in seconds
   var bgcolor = Colors.blue[300];
   String splashImage = 'assets/splashAnimation.gif';
   double splashImageSize = 200;
@@ -31,9 +31,14 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgcolor,
+      appBar: PreferredSize(
+          preferredSize: Size.fromHeight(0.0),
+          child: AppBar()
+      ),
       body: Center(
         child: Image.asset(
           splashImage,

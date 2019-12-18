@@ -24,6 +24,10 @@ class NavigationState extends State<Navigation> {
     return MaterialApp(
       home: Scaffold(
         body: _pageOptions[_selectedPage],
+        appBar: PreferredSize(
+            preferredSize: Size.fromHeight(0.0),
+            child: AppBar()
+        ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedPage,
           onTap: _onItemTapped,
@@ -32,7 +36,7 @@ class NavigationState extends State<Navigation> {
             BottomNavigationBarItem(
                 icon: Icon(Icons.local_parking), title: Text('Parking')),
             BottomNavigationBarItem(
-                icon: Icon(Icons.directions), title: Text('Map')),
+                icon: Icon(Icons.map), title: Text('Map')),
             BottomNavigationBarItem(
                 icon: Icon(Icons.supervised_user_circle),
                 title: Text('Profile')),
