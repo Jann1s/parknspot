@@ -93,6 +93,7 @@ class ProfileState extends State<Profile> {
                           Padding(
                             padding: EdgeInsets.all(8.0),
                             child: TextFormField(
+                              obscureText: true,
                               decoration: const InputDecoration(
                                 icon: Icon(Icons.lock),
                                 hintText: 'Password',
@@ -103,6 +104,7 @@ class ProfileState extends State<Profile> {
                           Padding(
                             padding: EdgeInsets.all(8.0),
                             child: TextFormField(
+                              obscureText: true,
                               decoration: const InputDecoration(
                                 icon: Icon(Icons.lock),
                                 hintText: 'Password',
@@ -113,9 +115,10 @@ class ProfileState extends State<Profile> {
                           Padding(
                             padding: EdgeInsets.all(8.0),
                             child: TextFormField(
+                              obscureText: true,
                               decoration: const InputDecoration(
                                 icon: Icon(Icons.lock),
-                                hintText: 'Password',
+                                hintText: 'Password',                                
                                 labelText: 'Confirm Password*',
                               ),
                             ),
