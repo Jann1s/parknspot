@@ -105,60 +105,6 @@ class ParkingState extends State<Parking> {
               ),
             )
           ],)
-          /*
-          Container(
-            child: Column(
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Text('Set availability:', style: TextStyle(fontSize: 20),)
-                  ],
-                ),
-                Row(children: <Widget>[],),
-                FlatButton(
-                  color: Colors.grey,
-                  textColor: Colors.white,
-                  child: Text('Full', style: TextStyle(fontSize: 15),), 
-                  onPressed: () {},
-                ),
-                FlatButton(
-                  color: Colors.grey,
-                  textColor: Colors.white,
-                  child: Text('1 - 4 available spots', style: TextStyle(fontSize: 15)), 
-                  onPressed: () {},
-                ),
-                FlatButton(
-                  color: Colors.grey,
-                  textColor: Colors.white,
-                  child: Text('5 - 10 available spots', style: TextStyle(fontSize: 15)), 
-                  onPressed: () {},
-                ),
-                FlatButton(
-                  color: Colors.grey,
-                  textColor: Colors.white,
-                  child: Text('11 - 20 available spots', style: TextStyle(fontSize: 15)), 
-                  onPressed: () {},
-                ),
-                FlatButton(
-                  color: Colors.grey,
-                  textColor: Colors.white,
-                  child: Text('21+ available spots', style: TextStyle(fontSize: 15)), 
-                  onPressed: () {},
-                ),
-                FlatButton(
-                  child: Text(
-                    'Confirm',
-                    style: TextStyle(fontSize: 20.0)
-                  ),
-                  color: Colors.green,
-                  textColor: Colors.white,
-                  padding: EdgeInsets.all(10),
-                  onPressed: (){}
-                ),
-              ],
-            ),
-          )
-          */
         ],
       ),
     );
