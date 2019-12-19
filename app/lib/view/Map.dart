@@ -10,7 +10,10 @@ class MyMap extends StatefulWidget {
   }
 }
 
-class MyMapState extends State<MyMap> {
+class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   Completer<GoogleMapController> _controller = Completer();
 
   static final CameraPosition _emmenPosition = CameraPosition(
