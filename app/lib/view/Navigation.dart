@@ -10,27 +10,31 @@ class Navigation extends StatefulWidget {
 }
 
 class NavigationState extends State<Navigation> {
-  int _selectedPage = 1;
-  final _pageOptions = [Parking(), MyMap(), Profile()];
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedPage = index;
-    });
-  }
+  int _currentPage = 1;
 
-  // This widget is the root of your application.
+  PageController _pageController = PageController(
+    initialPage: 1,
+  );
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: _pageOptions[_selectedPage],
+        body: PageView(
+          controller: _pageController,
+          physics: NeverScrollableScrollPhysics(),
+          onPageChanged: onPageChanged,
+          children: <Widget>[
+            Parking(), MyMap(), Profile()
+          ],
+        ),
         appBar: PreferredSize(
             preferredSize: Size.fromHeight(0.0),
             child: AppBar()
         ),
         bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedPage,
-          onTap: _onItemTapped,
+          currentIndex: _currentPage,
+          onTap: onNavigationTap,
           selectedItemColor: Colors.blue[800],
           items: [
             BottomNavigationBarItem(
@@ -50,5 +54,40 @@ class NavigationState extends State<Navigation> {
         primarySwatch: Colors.blue,
       ),
     );
+  }
+
+  void onPageChanged(int page) {
+    setState(() => _currentPage = page);
+  }
+
+  void onNavigationTap(int newPage) {
+    switch(newPage) {
+      case 0:
+        _pageController.animateToPage(
+          0,
+          duration: Duration(milliseconds: 400),
+          curve: Curves.fastOutSlowIn,
+        );
+        _currentPage = 0;
+        break;
+      case 1:
+        _pageController.animateToPage(
+          1,
+          duration: Duration(milliseconds: 400),
+          curve: Curves.fastOutSlowIn,
+        );
+        _currentPage = 1;
+        break;
+      case 2:
+        _pageController.animateToPage(
+          2,
+          duration: Duration(milliseconds: 400),
+          curve: Curves.fastOutSlowIn,
+        );
+        _currentPage = 2;
+        break;
+      default:
+        break;
+    }
   }
 }
