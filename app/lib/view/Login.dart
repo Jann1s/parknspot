@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:parknspot/controller/LoginController.dart';
 import 'package:parknspot/view/Navigation.dart';
 import 'package:parknspot/view/Register.dart';
 
@@ -10,8 +11,33 @@ class Login extends StatefulWidget {
 }
 
 class LoginState extends State<Login> {
+
+  LoginController _loginController = new LoginController();
+
+  TextEditingController _emailController = new TextEditingController();
+  TextEditingController _passwordController = new TextEditingController();
+
+  bool _checkForUser = false;
+
+  void _checkLogin(BuildContext context) async {
+    LoginController loginController = new LoginController();
+    bool loggedIn = await loginController.checkLoggedIn();
+
+    if (loggedIn) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => Navigation()));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_checkForUser) {
+      _checkForUser = true;
+      _checkLogin(context);
+    }
+
     return Scaffold(
       body: Center(
         child: Form(
@@ -49,6 +75,7 @@ class LoginState extends State<Login> {
                     height: 70.0,
                   ),
                   TextFormField(
+                    controller: _emailController,
                       decoration: InputDecoration(
                           prefixIcon: Icon(Icons.email),
                           labelText: "email",
@@ -70,6 +97,7 @@ class LoginState extends State<Login> {
                     height: 15.0,
                   ),
                   TextFormField(
+                    controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
                           prefixIcon: Icon(Icons.lock),
@@ -104,11 +132,14 @@ class LoginState extends State<Login> {
                               color: Colors.white,
                               fontWeight: FontWeight.w500,
                               fontFamily: 'Montserrat')),
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => Navigation()));
+                      onPressed: () async {
+                        bool loggedIn = await _loginController.loginUser(_emailController.text, _passwordController.text);
+                        if (loggedIn) {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Navigation()));
+                        }
                       },
                     ),
                   ),

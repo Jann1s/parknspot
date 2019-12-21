@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:parknspot/controller/LoginController.dart';
+import 'package:parknspot/view/Login.dart';
 import 'package:parknspot/view/Navigation.dart';
 
 class Register extends StatefulWidget {
@@ -9,6 +11,13 @@ class Register extends StatefulWidget {
 }
 
 class RegisterState extends State<Register> {
+
+  LoginController _loginController = new LoginController();
+
+  TextEditingController _emailController = new TextEditingController();
+  TextEditingController _passwordController = new TextEditingController();
+  TextEditingController _passwordConfirmController = new TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,6 +44,7 @@ class RegisterState extends State<Register> {
                     height: 50.0,
                   ),
                   TextFormField(
+                    controller: _emailController,
                       decoration: InputDecoration(
                           prefixIcon: Icon(Icons.email),
                           labelText: "email",
@@ -57,6 +67,7 @@ class RegisterState extends State<Register> {
                     height: 15.0,
                   ),
                   TextFormField(
+                    controller: _passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                         prefixIcon: Icon(Icons.lock),
@@ -79,6 +90,7 @@ class RegisterState extends State<Register> {
                     height: 15.0,
                   ),
                   TextFormField(
+                    controller: _passwordConfirmController,
                     obscureText: true,
                     decoration: InputDecoration(
                         prefixIcon: Icon(Icons.lock),
@@ -114,11 +126,14 @@ class RegisterState extends State<Register> {
                               color: Colors.white,
                               fontWeight: FontWeight.w500,
                               fontFamily: 'Montserrat')),
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => Navigation()));
+                      onPressed: () async {
+                        bool registered = await _loginController.registerUser(_emailController.text, _passwordController.text, _passwordConfirmController.text);
+                        if (registered) {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Login()));
+                        }
                       },
                     ),
                   ),

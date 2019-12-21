@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:parknspot/controller/LoginController.dart';
+import 'package:parknspot/view/Login.dart';
+import 'package:parknspot/view/Map.dart';
 
 class Profile extends StatefulWidget {
   State<StatefulWidget> createState() {
@@ -9,6 +12,8 @@ class Profile extends StatefulWidget {
 class ProfileState extends State<Profile> {
   final _emailFormKey = GlobalKey<FormState>();
   final _passwordFormKey = GlobalKey<FormState>();
+  LoginController _loginController = new LoginController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -202,7 +207,13 @@ class ProfileState extends State<Profile> {
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                             fontFamily: 'Montserrat')),
-                    onPressed: () {},
+                    onPressed: () {
+                      _loginController.logout();
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Login()));
+                    },
                   ),
                 ),
               ),

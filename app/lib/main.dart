@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:parknspot/controller/LoginController.dart';
 import 'package:parknspot/view/Login.dart';
-import 'package:parknspot/view/SplashScreen.dart';
+import 'package:parknspot/view/Navigation.dart';
 
 void main() => runApp(MyApp());
 
@@ -13,6 +16,7 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
       title: 'Flutter Demo',
       home: Scaffold(
