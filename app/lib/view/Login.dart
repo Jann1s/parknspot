@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:parknspot/view/Navigation.dart';
 import 'package:parknspot/view/Register.dart';
+import 'package:parknspot/ThemeGlobals.dart';
 
 class Login extends StatefulWidget {
   State<StatefulWidget> createState() {
@@ -26,38 +27,32 @@ class LoginState extends State<Login> {
                       decoration: new BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey,
+                            color: ThemeGlobals.shadow,
                             blurRadius:
                                 5.0, // has the effect of softening the shadow
                             spreadRadius:
                                 0.5, // has the effect of extending the shadow
                             offset: Offset(
-                              0.0, // horizontal, move right 10
-                              0.0, // vertical, move down 10
+                              0.0, // horizontal, move right
+                              0.0, // vertical, move down
                             ),
                           )
                         ],
                       ),
-                      child: Image.asset(
-                        'assets/loginAnimation.gif',
-                        height: 100,
-                        width: 100,
-                      ),
+                      child: ThemeGlobals.animatedLogo,
                     ),
                   ),
-                  SizedBox(
-                    height: 70.0,
-                  ),
+                  ThemeGlobals.mediumSpacer,
                   TextFormField(
                       decoration: InputDecoration(
                           prefixIcon: Icon(Icons.email),
                           labelText: "email",
                           filled: true,
-                          fillColor: Colors.grey.shade200,
+                          fillColor: ThemeGlobals.buttonFillColor,
                           contentPadding:
                               EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25.0),
+                              borderRadius: ThemeGlobals.inputFieldRadius,
                               borderSide: BorderSide.none)),
                       validator: (value) {
                         if (value.isEmpty) {
@@ -65,10 +60,7 @@ class LoginState extends State<Login> {
                         }
                         return null;
                       }),
-                  //Space between; TO BE ADDED TO GLOBALS
-                  SizedBox(
-                    height: 15.0,
-                  ),
+                  ThemeGlobals.smallSpacer,
                   TextFormField(
                       obscureText: true,
                       decoration: InputDecoration(
@@ -79,7 +71,7 @@ class LoginState extends State<Login> {
                           contentPadding:
                               EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25.0),
+                              borderRadius: ThemeGlobals.inputFieldRadius,
                               borderSide: BorderSide.none)),
                       validator: (value) {
                         if (value.isEmpty) {
@@ -87,22 +79,20 @@ class LoginState extends State<Login> {
                         }
                         return null;
                       }),
-                  SizedBox(
-                    height: 15.0,
-                  ),
+                  ThemeGlobals.smallSpacer,
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: RaisedButton(
-                      color: Colors.blue.shade300,
+                      color: ThemeGlobals.parknspotMain,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: ThemeGlobals.buttonBorderRadius,
                       ),
                       child: Text('Login',
                           style: TextStyle(
                               fontSize: 25.0,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
+                              color: ThemeGlobals.secondaryTextColor,
+                              fontWeight: ThemeGlobals.mediumWeight,
                               fontFamily: 'Montserrat')),
                       onPressed: () {
                         Navigator.push(
@@ -112,9 +102,7 @@ class LoginState extends State<Login> {
                       },
                     ),
                   ),
-                  SizedBox(
-                    height: 15.0,
-                  ),
+                  ThemeGlobals.smallSpacer,
                   SizedBox(
                     child: FlatButton(
                       onPressed: () {
@@ -128,7 +116,7 @@ class LoginState extends State<Login> {
                         child: Text('Don\'t have an account? Sign up',
                             style: TextStyle(
                                 fontSize: 18.0,
-                                fontWeight: FontWeight.w300,
+                                fontWeight: ThemeGlobals.description,
                                 fontFamily: 'Montserrat')),
                       ),
                     ),
@@ -140,7 +128,5 @@ class LoginState extends State<Login> {
         ),
       ),
     );
-
-    // This trailing comma makes auto-formatting nicer for build methods.
   }
 }
