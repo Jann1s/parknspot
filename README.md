@@ -1,2 +1,3 @@
 # parknspot
-Student project
+
+Park’n’Spot is an Android app developed with the Flutter software development kit. The user of this app is able to find parking lots around their or around a specified location. Using Google Maps and OpenStreetMap (OSM) the app will gather as much data as possible for the location area. If parking lots are not present at the data sources mentioned, the user has the ability to create a new entry or edit an existing entry. The information entered by the user is the location, total amount of parking lots and the current empty parking lots. An optional feature of this app would be to use the visitor statistics of Google Maps to recommend parking lots in that area.
