@@ -1,19 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:parknspot/controller/LoginController.dart';
+import 'package:parknspot/controller/ProfileController.dart';
 import 'package:parknspot/view/Login.dart';
-import 'package:parknspot/view/Map.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 
 class Profile extends StatefulWidget {
+  final LoginController _loginController;
+
+  Profile(this._loginController);
+
   State<StatefulWidget> createState() {
-    return ProfileState();
+    return ProfileState(_loginController);
   }
 }
 
 class ProfileState extends State<Profile> {
-  final _emailFormKey = GlobalKey<FormState>();
+  final LoginController _loginController;
+  ProfileController _profileController;
+
+  ProfileState(this._loginController) {
+    _profileController = new ProfileController(_loginController);
+  }
+
+  final TextEditingController _currentEmailController = new TextEditingController();
+  final TextEditingController _newEmailController = new TextEditingController();
   final _passwordFormKey = GlobalKey<FormState>();
-  LoginController _loginController = new LoginController();
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +81,7 @@ class ProfileState extends State<Profile> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
+
                             shape: RoundedRectangleBorder(
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(25.0))),
@@ -77,13 +89,13 @@ class ProfileState extends State<Profile> {
                               width: 250.0,
                               height: 150.0,
                               child: Form(
-                                key: _emailFormKey,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: <Widget>[
                                     Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: TextFormField(
+                                        controller: _currentEmailController,
                                         decoration: InputDecoration(
                                             contentPadding: EdgeInsets.fromLTRB(
                                                 20.0, 15.0, 20.0, 15.0),
@@ -102,6 +114,7 @@ class ProfileState extends State<Profile> {
                                     Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: TextFormField(
+                                        controller: _newEmailController,
                                         decoration: InputDecoration(
                                             contentPadding: EdgeInsets.fromLTRB(
                                                 20.0, 15.0, 20.0, 15.0),
@@ -149,9 +162,7 @@ class ProfileState extends State<Profile> {
                                   borderRadius: ThemeGlobals.dialogButtonRadius,
                                 ),
                                 onPressed: () {
-                                  if (_emailFormKey.currentState.validate()) {
-                                    _emailFormKey.currentState.save();
-                                  }
+                                  _profileController.changeEmail(_currentEmailController.text, _newEmailController.text);
                                 },
                               ),
                             ],
@@ -282,8 +293,8 @@ class ProfileState extends State<Profile> {
                                   borderRadius: ThemeGlobals.dialogButtonRadius,
                                 ),
                                 onPressed: () {
-                                  if (_emailFormKey.currentState.validate()) {
-                                    _emailFormKey.currentState.save();
+                                  if (_passwordFormKey.currentState.validate()) {
+                                    _passwordFormKey.currentState.save();
                                   }
                                 },
                               ),
@@ -311,11 +322,7 @@ class ProfileState extends State<Profile> {
                             fontWeight: ThemeGlobals.mediumWeight,
                             fontFamily: 'Montserrat')),
                     onPressed: () {
-                      _loginController.logout();
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Login()));
+                      _profileController.logout();
                     },
                   ),
                 ),

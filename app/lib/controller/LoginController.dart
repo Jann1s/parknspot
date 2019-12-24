@@ -1,17 +1,35 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/widgets.dart';
+import 'package:parknspot/view/Login.dart';
+import 'package:parknspot/main.dart';
 
 class LoginController {
 
-  final FlutterSecureStorage _storage = new FlutterSecureStorage();
+  Main _main;
+  Login _view;
   FirebaseUser _user;
   FirebaseAuth _auth;
 
-  LoginController() {
+  LoginController(Main main) {
+    _main = main;
     _auth = FirebaseAuth.instance;
+    _view = new Login(this);
+  }
+
+  Widget getView() {
+    return _view.getView();
+  }
+
+  void successfulLogin() {
+    _main.successfulLogin();
+  }
+
+  void showRegister() {
+    _main.showRegister();
+  }
+
+  void showLogin() {
+    _main.showLogin();
   }
 
   Future<bool> checkLoggedIn() async {
@@ -26,10 +44,8 @@ class LoginController {
     }
   }
 
-
-
   Future<bool> loginUser(String email, String password) async {
-    if (_checkInput(email, InputType.Mail)) {
+    if (checkInput(email, InputType.Mail)) {
       try {
         FirebaseUser user = (await _auth.signInWithEmailAndPassword(email: email, password: password)).user;
 
@@ -37,7 +53,7 @@ class LoginController {
           _user = user;
           return true;
         } else {
-          _showToast('Please verify your e-mail.');
+          Main.showToast('Please verify your e-mail.');
           return false;
         }
       }
@@ -45,16 +61,16 @@ class LoginController {
         print(e.code);
         switch (e.code) {
           case 'ERROR_INVALID_EMAIL':
-            _showToast('Invalid E-Mail address.');
+            Main.showToast('Invalid E-Mail address.');
             break;
           case 'ERROR_USER_NOT_FOUND':
-            _showToast('User not found.');
+            Main.showToast('User not found.');
             break;
           case 'ERROR_WRONG_PASSWORD':
-            _showToast('Wrong password entered.');
+            Main.showToast('Wrong password entered.');
             break;
           case 'ERROR_EMAIL_ALREADY_IN_USE':
-            _showToast('E-Mail address is already in use.');
+            Main.showToast('E-Mail address is already in use.');
             break;
           default:
           //authError = 'Error';
@@ -63,56 +79,8 @@ class LoginController {
 
         return false;
       }
-
     }
     else {
-      return false;
-    }
-  }
-
-  Future<bool> registerUser(String email, String password, String passwordConfirm) async {
-
-    if (password == passwordConfirm) {
-      if (_checkInput(email, InputType.Mail) && _checkInput(password, InputType.Password)) {
-        try {
-          FirebaseUser user = (await _auth.createUserWithEmailAndPassword(
-            email: email,
-            password: password,
-          )).user;
-
-          user.sendEmailVerification();
-
-          return true;
-        }
-        catch (e) {
-          print(e.code);
-          switch (e.code) {
-            case 'ERROR_INVALID_EMAIL':
-              _showToast('Invalid E-Mail address.');
-              break;
-            case 'ERROR_USER_NOT_FOUND':
-              _showToast('User not found.');
-              break;
-            case 'ERROR_WRONG_PASSWORD':
-              _showToast('Wrong password entered.');
-              break;
-            case 'ERROR_EMAIL_ALREADY_IN_USE':
-              _showToast('E-Mail address is already in use.');
-              break;
-            default:
-            //authError = 'Error';
-              break;
-          }
-
-          return false;
-        }
-      }
-      else {
-        return false;
-      }
-    }
-    else {
-      _showToast('Your passwords do not match.');
       return false;
     }
   }
@@ -121,18 +89,22 @@ class LoginController {
     await _auth.signOut();
   }
 
-  bool _checkInput(String input, InputType type) {
+  FirebaseUser getUser() {
+    return _user;
+  }
+
+  static bool checkInput(String input, InputType type) {
     if (InputType.Mail == type) {
       if (!input.contains('@')) {
-        _showToast('E-Mail address is invalid.');
+        Main.showToast('E-Mail address is invalid.');
         return false;
       }
       if (!input.substring(input.indexOf('@')).contains('.')) {
-        _showToast('E-Mail address is invalid.');
+        Main.showToast('E-Mail address is invalid.');
         return false;
       }
       if (input.endsWith('.')) {
-        _showToast('E-Mail address is invalid.');
+        Main.showToast('E-Mail address is invalid.');
         return false;
       }
 
@@ -140,7 +112,7 @@ class LoginController {
     }
     else if (InputType.Password == type) {
       if (input.length < 8) {
-        _showToast('Your password is weak.');
+        Main.showToast('Your password is weak.');
         return false;
       }
 
@@ -149,16 +121,6 @@ class LoginController {
     else {
       return false;
     }
-  }
-
-  void _showToast(String text) {
-    Fluttertoast.showToast(
-        msg: text,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIos: 1,
-        fontSize: 16.0
-    );
   }
 }
 
