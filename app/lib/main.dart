@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:parknspot/view/Login.dart';
 import 'package:parknspot/view/SplashScreen.dart';
 
 void main() => runApp(MyApp());
@@ -16,7 +15,7 @@ class MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Flutter Demo',
       home: Scaffold(
-        body: Login(),
+        body: SplashScreen(),
         appBar: PreferredSize(
             preferredSize: Size.fromHeight(0.0),
           child: AppBar()
