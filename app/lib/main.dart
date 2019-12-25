@@ -18,6 +18,7 @@ class MyApp extends StatefulWidget {
 }
 
 class Main extends State<MyApp> {
+  bool _checkedLogin = false;
   bool _loginVisible = true;
   bool _bottomNavBarVisible = false;
   int _currentPage = 1;
@@ -32,6 +33,7 @@ class Main extends State<MyApp> {
   Main() {
     _registerController = new RegisterController(this);
     _loginController = new LoginController(this);
+    _checkLogin();
   }
 
   @override
@@ -67,7 +69,10 @@ class Main extends State<MyApp> {
   }
 
   Widget _getPageBody() {
-    if (_bottomNavBarVisible) {
+    if (!_checkedLogin) {
+      return SplashScreen();
+    }
+    else if (_bottomNavBarVisible) {
       return PageView(
         controller: _pageController,
         physics: NeverScrollableScrollPhysics(),
@@ -152,5 +157,23 @@ class Main extends State<MyApp> {
         timeInSecForIos: 1,
         fontSize: 16.0
     );
+  }
+
+  void _checkLogin() async {
+    bool loggedIn = await _loginController.checkLoggedIn();
+
+    if (loggedIn) {
+      setState(() {
+        _checkedLogin = true;
+        _bottomNavBarVisible = true;
+      });
+    }
+    else {
+      setState(() {
+        _checkedLogin = true;
+        _bottomNavBarVisible = false;
+        _loginVisible = true;
+      });
+    }
   }
 }
