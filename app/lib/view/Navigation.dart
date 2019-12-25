@@ -19,6 +19,7 @@ class NavigationState extends State<Navigation> {
 
   @override
   Widget build(BuildContext context) {
+    /*
     return MaterialApp(
       home: Scaffold(
         body: PageView(
@@ -43,7 +44,7 @@ class NavigationState extends State<Navigation> {
           ],
         ),
       ),
-    );
+    );*/
   }
 
   void onPageChanged(int page) {
