@@ -19,6 +19,7 @@ class MyApp extends StatefulWidget {
 class Main extends State<MyApp> {
   bool _loginVisible = true;
   bool _bottomNavBarVisible = false;
+
   int _currentPage = 1;
   PageController _pageController = PageController(
     initialPage: 1,

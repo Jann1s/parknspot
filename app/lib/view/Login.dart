@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:parknspot/controller/LoginController.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 
-
 class Login {
 
   final LoginController _loginController;
-
+  
   Login(this._loginController);
 
   TextEditingController _emailController = new TextEditingController();
   TextEditingController _passwordController = new TextEditingController();
 
+
+  
   //bool _checkForUser = false;
 
   /*
@@ -118,6 +119,21 @@ class Login {
                       }
                     },
                   ),
+                ),ThemeGlobals.smallSpacer,
+                SizedBox(
+                  child: FlatButton(
+                    onPressed: () {
+                 
+                    },
+                    hoverColor: Colors.teal,
+                    child: Center(
+                      child: Text('Forgot Password? Reset',
+                          style: TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: ThemeGlobals.description,
+                              fontFamily: 'Montserrat')),
+                    ),
+                  ),
                 ),
                 ThemeGlobals.smallSpacer,
                 SizedBox(
@@ -143,3 +159,4 @@ class Login {
     );
   }
 }
+

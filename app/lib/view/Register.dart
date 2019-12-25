@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/controller/RegisterController.dart';
 
 class Register {
@@ -119,8 +120,23 @@ class Register {
                         _registerController.showLogin();
                       }
                     },
+                  ), 
+                ),   ThemeGlobals.smallSpacer,
+                SizedBox(
+                  child: FlatButton(
+                    onPressed: () {
+                      _registerController.showLogin();
+                    },
+                    hoverColor: Colors.teal,
+                    child: Center(
+                      child: Text('Back to Login',
+                          style: TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: ThemeGlobals.description,
+                              fontFamily: 'Montserrat')),
+                    ),
                   ),
-                ),
+                )
               ],
             ),
           ),

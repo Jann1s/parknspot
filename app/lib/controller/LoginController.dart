@@ -85,6 +85,32 @@ class LoginController {
     }
   }
 
+  //Reset password
+  Future resetPassword(String email) async {
+    if(checkInput(email, InputType.Mail)){  
+  try{
+  await _auth.sendPasswordResetEmail(email: email);
+    }    catch (e) {
+        print(e.code);
+        switch (e.code) {
+          case 'ERROR_INVALID_EMAIL':
+            Main.showToast('Invalid E-Mail address.');
+            break;
+          case 'ERROR_USER_NOT_FOUND':
+            Main.showToast('User not found.');
+            break;
+          default:
+          //authError = 'Error';
+            break;
+        }
+
+        return false;
+      }
+
+    }
+    
+}
+
   void logout() async {
     await _auth.signOut();
   }
