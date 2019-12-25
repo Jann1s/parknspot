@@ -24,6 +24,9 @@ class ProfileState extends State<Profile> {
 
   final TextEditingController _currentEmailController = new TextEditingController();
   final TextEditingController _newEmailController = new TextEditingController();
+   final  TextEditingController _currentPasswordController = new TextEditingController();
+  final  TextEditingController _passwordController = new TextEditingController();
+  final TextEditingController _passwordConfirmController = new TextEditingController();
   final _passwordFormKey = GlobalKey<FormState>();
 
   @override
@@ -207,8 +210,10 @@ class ProfileState extends State<Profile> {
                                     Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: TextFormField(
+                                        controller: _currentPasswordController,
                                         obscureText: true,
                                         decoration: InputDecoration(
+                                          
                                             contentPadding: EdgeInsets.fromLTRB(
                                                 20.0, 15.0, 20.0, 15.0),
                                             filled: true,
@@ -226,6 +231,7 @@ class ProfileState extends State<Profile> {
                                     Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: TextFormField(
+                                        controller: _passwordController,
                                         obscureText: true,
                                         decoration: InputDecoration(
                                             contentPadding: EdgeInsets.fromLTRB(
@@ -245,6 +251,7 @@ class ProfileState extends State<Profile> {
                                     Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: TextFormField(
+                                        controller: _passwordConfirmController,
                                         obscureText: true,
                                         decoration: InputDecoration(
                                             contentPadding: EdgeInsets.fromLTRB(
@@ -293,9 +300,7 @@ class ProfileState extends State<Profile> {
                                   borderRadius: ThemeGlobals.dialogButtonRadius,
                                 ),
                                 onPressed: () {
-                                  if (_passwordFormKey.currentState.validate()) {
-                                    _passwordFormKey.currentState.save();
-                                  }
+                                  _profileController.changePassword(_currentPasswordController.text, _passwordController.text, _passwordConfirmController.text);
                                 },
                               ),
                             ],

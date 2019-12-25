@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:parknspot/controller/LoginController.dart';
 import 'package:parknspot/main.dart';
 
 class ProfileController {
   LoginController _loginController;
+  
 
   ProfileController(LoginController loginController) {
     _loginController = loginController;
@@ -29,6 +31,23 @@ class ProfileController {
     }
     else {
       Main.showToast('Please enter your current E-Mail.');
+      return false;
+    }
+  }
+
+  Future <bool> changePassword(String currentPassword, String newPassword, String confirmPassword) async {
+try {
+      FirebaseUser user = await FirebaseAuth.instance.currentUser();
+      String email = user.email;
+      AuthResult result = await user.reauthenticateWithCredential(
+        EmailAuthProvider.getCredential(email: email, password: currentPassword)
+      );
+      await result.user.updatePassword(newPassword);
+      print(newPassword);
+    
+      return true;
+    } catch(error) {
+      print(error);
       return false;
     }
   }
