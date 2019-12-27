@@ -7,6 +7,7 @@ import 'package:parknspot/controller/RegisterController.dart';
 import 'package:parknspot/view/Map.dart';
 import 'package:parknspot/view/Parking.dart';
 import 'package:parknspot/view/Profile.dart';
+import 'package:parknspot/view/SplashScreen.dart';
 
 void main() => runApp(MyApp());
 
