@@ -1,5 +1,5 @@
-import 'package:parknspot/controller/LoginController.dart';
-import 'package:parknspot/main.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/widgets.dart';
 
 class ProfileController {
   LoginController _loginController;
@@ -33,6 +33,38 @@ class ProfileController {
     }
   }
 
+  Future<bool> changePassword(String currentPassword, String newPassword,
+      String confirmPassword) async {
+    try {
+      if (newPassword == confirmPassword) {
+        if (!LoginController.checkInput(newPassword, InputType.Password)) {
+          Main.showToast('Password should be at least 8 char long');
+          return false;
+        } else if (!LoginController.checkInput(
+            confirmPassword, InputType.Password)) {
+          Main.showToast('Password should be at least 8 char long');
+          return false;
+        } else {
+          FirebaseUser user = await FirebaseAuth.instance.currentUser();
+          String email = user.email;
+          AuthResult result = await user.reauthenticateWithCredential(
+              EmailAuthProvider.getCredential(
+                  email: email, password: currentPassword));
+          await result.user.updatePassword(newPassword);
+          Main.showToast('Password changed successfully');
+
+          return true;
+        }
+      } else {
+        Main.showToast('Passwords do nomatch');
+        return false;
+      }
+    } catch (error) {
+      print(error);
+      return false;
+    }
+  }
+  
   void logout() {
     _loginController.logout();
     _loginController.showLogin();

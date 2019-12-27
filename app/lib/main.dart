@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:parknspot/ThemeGlobals.dart';
+import 'package:parknspot/controller/LoginController.dart';
+import 'package:parknspot/controller/MapController.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:parknspot/controller/RegisterController.dart';
+import 'package:parknspot/view/Map.dart';
+import 'package:parknspot/view/Parking.dart';
+import 'package:parknspot/view/Profile.dart';
 import 'package:parknspot/view/SplashScreen.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/controller/LoginController.dart';
@@ -158,7 +166,7 @@ class Main extends State<MyApp> {
         fontSize: 16.0
     );
   }
-
+  
   void _checkLogin() async {
     bool loggedIn = await _loginController.checkLoggedIn();
 
