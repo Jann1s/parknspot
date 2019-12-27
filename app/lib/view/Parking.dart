@@ -46,7 +46,7 @@ class ParkingState extends State<Parking> {
                   ),
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 40,
                     child: RaisedButton(
                       color: ThemeGlobals.primaryButtonColor,
                       shape: RoundedRectangleBorder(
@@ -54,7 +54,7 @@ class ParkingState extends State<Parking> {
                       ),
                       child: Text('Set location',
                           style: TextStyle(
-                              fontSize: 25.0,
+                              fontSize: 20.0,
                               color: Colors.white,
                               fontWeight: ThemeGlobals.mediumWeight,
                               fontFamily: 'Montserrat')),
