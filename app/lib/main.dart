@@ -18,9 +18,11 @@ class MyApp extends StatefulWidget {
 }
 
 class Main extends State<MyApp> {
+  CurrentPage _pageView = CurrentPage.Splashscreen;
   bool _checkedLogin = false;
   bool _loginVisible = true;
   bool _bottomNavBarVisible = false;
+
   int _currentPage = 1;
   PageController _pageController = PageController(
     initialPage: 1,
@@ -69,22 +71,25 @@ class Main extends State<MyApp> {
   }
 
   Widget _getPageBody() {
-    if (!_checkedLogin) {
-      return SplashScreen();
-    }
-    else if (_bottomNavBarVisible) {
+    if (CurrentPage.MainApp == _pageView) {
       return PageView(
         controller: _pageController,
         physics: NeverScrollableScrollPhysics(),
         onPageChanged: _onPageChanged,
         children: <Widget>[Parking(), MyMap(), Profile(_loginController)],
       );
-    } else {
-      if (_loginVisible) {
-        return _loginController.getView();
-      } else {
-        return _registerController.getView();
-      }
+    }
+    else if (CurrentPage.Login == _pageView) {
+      return _loginController.getView();
+    }
+    else if (CurrentPage.Register == _pageView) {
+      return _registerController.getView();
+    }
+    else if (CurrentPage.ForgotPassword == _pageView) {
+      return _loginController.getResetView();
+    }
+    else if (CurrentPage.Splashscreen == _pageView) {
+      return SplashScreen();
     }
   }
 
@@ -132,21 +137,22 @@ class Main extends State<MyApp> {
   }
 
   void successfulLogin() {
-    setState(() => _bottomNavBarVisible = true);
+    setState(() {
+      _pageView = CurrentPage.MainApp;
+      _bottomNavBarVisible = true;
+    });
   }
 
   void showLogin() {
-    setState(() {
-      _bottomNavBarVisible = false;
-      _loginVisible = true;
-    });
+    setState(() => _pageView = CurrentPage.Login);
   }
 
   void showRegister() {
-    setState(() {
-      _bottomNavBarVisible = false;
-      _loginVisible = false;
-    });
+    setState(() => _pageView = CurrentPage.Register);
+  }
+
+  void showResetPassword() {
+    setState(() => _pageView = CurrentPage.ForgotPassword);
   }
 
   static void showToast(String text) {
@@ -163,17 +169,20 @@ class Main extends State<MyApp> {
     bool loggedIn = await _loginController.checkLoggedIn();
 
     if (loggedIn) {
-      setState(() {
-        _checkedLogin = true;
-        _bottomNavBarVisible = true;
-      });
+      successfulLogin();
     }
     else {
       setState(() {
-        _checkedLogin = true;
-        _bottomNavBarVisible = false;
-        _loginVisible = true;
+        _pageView = CurrentPage.Login;
       });
     }
   }
+}
+
+enum CurrentPage {
+  MainApp,
+  Login,
+  Register,
+  Splashscreen,
+  ForgotPassword
 }

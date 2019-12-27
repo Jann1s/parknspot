@@ -2,11 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:parknspot/view/Login.dart';
 import 'package:parknspot/main.dart';
+import 'package:parknspot/view/PasswordReset.dart';
 
 class LoginController {
-
   Main _main;
   Login _view;
+  PasswordReset _resetView;
   FirebaseUser _user;
   FirebaseAuth _auth;
 
@@ -14,6 +15,7 @@ class LoginController {
     _main = main;
     _auth = FirebaseAuth.instance;
     _view = new Login(this);
+    _resetView = new PasswordReset(this);
   }
 
   Widget getView() {
@@ -38,8 +40,7 @@ class LoginController {
     if (user != null) {
       _user = user;
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
@@ -47,7 +48,9 @@ class LoginController {
   Future<bool> loginUser(String email, String password) async {
     if (checkInput(email, InputType.Mail)) {
       try {
-        FirebaseUser user = (await _auth.signInWithEmailAndPassword(email: email, password: password)).user;
+        FirebaseUser user = (await _auth.signInWithEmailAndPassword(
+                email: email, password: password))
+            .user;
 
         if (user.isEmailVerified) {
           _user = user;
@@ -56,8 +59,7 @@ class LoginController {
           Main.showToast('Please verify your e-mail.');
           return false;
         }
-      }
-      catch (e) {
+      } catch (e) {
         print(e.code);
         switch (e.code) {
           case 'ERROR_INVALID_EMAIL':
@@ -73,15 +75,39 @@ class LoginController {
             Main.showToast('E-Mail address is already in use.');
             break;
           default:
-          //authError = 'Error';
+            //authError = 'Error';
             break;
         }
 
         return false;
       }
-    }
-    else {
+    } else {
       return false;
+    }
+  }
+
+  //Reset password
+  Future resetPassword(String email) async {
+    if (checkInput(email, InputType.Mail)) {
+      try {
+        await _auth.sendPasswordResetEmail(email: email);
+        Main.showToast('Password recovery link sent to your email');
+      } catch (e) {
+        print(e.code);
+        switch (e.code) {
+          case 'ERROR_INVALID_EMAIL':
+            Main.showToast('Invalid E-Mail address.');
+            break;
+          case 'ERROR_USER_NOT_FOUND':
+            Main.showToast('User not found.');
+            break;
+          default:
+            //authError = 'Error';
+            break;
+        }
+
+        return false;
+      }
     }
   }
 
@@ -109,22 +135,25 @@ class LoginController {
       }
 
       return true;
-    }
-    else if (InputType.Password == type) {
+    } else if (InputType.Password == type) {
       if (input.length < 8) {
         Main.showToast('Your password is weak.');
         return false;
       }
 
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
+
+  void showResetView() {
+    _main.showResetPassword();
+  }
+
+  Widget getResetView() {
+    return _resetView.getView();
+  }
 }
 
-enum InputType {
-  Mail,
-  Password
-}
+enum InputType { Mail, Password }
