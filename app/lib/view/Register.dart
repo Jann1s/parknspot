@@ -10,7 +10,8 @@ class Register {
 
   TextEditingController _emailController = new TextEditingController();
   TextEditingController _passwordController = new TextEditingController();
-  TextEditingController _passwordConfirmController = new TextEditingController();
+  TextEditingController _passwordConfirmController =
+      new TextEditingController();
 
   Widget getView() {
     return Center(
@@ -32,7 +33,7 @@ class Register {
                   height: 50.0,
                 ),
                 TextFormField(
-                  controller: _emailController,
+                    controller: _emailController,
                     decoration: InputDecoration(
                         prefixIcon: Icon(Icons.email),
                         labelText: "email",
@@ -41,7 +42,7 @@ class Register {
                         contentPadding:
                             EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(25.0),
+                            borderRadius: ThemeGlobals.inputFieldRadius,
                             borderSide: BorderSide.none)),
                     validator: (value) {
                       if (value.isEmpty) {
@@ -65,7 +66,7 @@ class Register {
                       contentPadding:
                           EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25.0),
+                          borderRadius: ThemeGlobals.inputFieldRadius,
                           borderSide: BorderSide.none)),
                   validator: (value) {
                     if (value.isEmpty) {
@@ -88,7 +89,7 @@ class Register {
                       contentPadding:
                           EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25.0),
+                          borderRadius: ThemeGlobals.inputFieldRadius,
                           borderSide: BorderSide.none)),
                   validator: (value) {
                     if (value.isEmpty) {
@@ -106,7 +107,7 @@ class Register {
                   child: RaisedButton(
                     color: Colors.blue.shade300,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: ThemeGlobals.buttonBorderRadius,
                     ),
                     child: Text('Register',
                         style: TextStyle(
@@ -115,13 +116,17 @@ class Register {
                             fontWeight: FontWeight.w500,
                             fontFamily: 'Montserrat')),
                     onPressed: () async {
-                      bool registered = await _registerController.registerUser(_emailController.text, _passwordController.text, _passwordConfirmController.text);
+                      bool registered = await _registerController.registerUser(
+                          _emailController.text,
+                          _passwordController.text,
+                          _passwordConfirmController.text);
                       if (registered) {
                         _registerController.showLogin();
                       }
                     },
-                  ), 
-                ),   ThemeGlobals.smallSpacer,
+                  ),
+                ),
+                ThemeGlobals.smallSpacer,
                 SizedBox(
                   child: FlatButton(
                     onPressed: () {
