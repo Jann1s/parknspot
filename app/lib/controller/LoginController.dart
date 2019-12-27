@@ -2,11 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:parknspot/view/Login.dart';
 import 'package:parknspot/main.dart';
+import 'package:parknspot/view/PasswordReset.dart';
 
 class LoginController {
 
   Main _main;
   Login _view;
+  PasswordReset _resetView;
   FirebaseUser _user;
   FirebaseAuth _auth;
 
@@ -14,6 +16,7 @@ class LoginController {
     _main = main;
     _auth = FirebaseAuth.instance;
     _view = new Login(this);
+    _resetView = new PasswordReset(this);
   }
 
   Widget getView() {
@@ -147,6 +150,14 @@ class LoginController {
     else {
       return false;
     }
+  }
+
+  void showResetView() {
+    _main.showResetPassword();
+  }
+
+  Widget getResetView() {
+    return _resetView.getView();
   }
 }
 

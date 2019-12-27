@@ -5,8 +5,8 @@ import 'package:parknspot/controller/LoginController.dart';
 
 
 class PasswordReset {
-final LoginController _loginController;
-TextEditingController _emailController = new TextEditingController();
+  final LoginController _loginController;
+  TextEditingController _emailController = new TextEditingController();
 
   PasswordReset(this._loginController);
 
@@ -62,9 +62,7 @@ TextEditingController _emailController = new TextEditingController();
                       }
                     },
                   ),
-                )
-            
-                
+                ),
               ],
             ),
           ),

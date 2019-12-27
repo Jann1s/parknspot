@@ -123,7 +123,7 @@ class Login {
                 SizedBox(
                   child: FlatButton(
                     onPressed: () {
-                 
+                      _loginController.showResetView();
                     },
                     hoverColor: Colors.teal,
                     child: Center(
