@@ -26,7 +26,7 @@ class ThemeGlobals {
     height: 100,
   );
 
-//Raius Styles
+  //Raius Styles
   static BorderRadius buttonBorderRadius = BorderRadius.circular(2.0);
   static BorderRadius inputFieldRadius = BorderRadius.circular(2.0);
   static BorderRadius dialogInputRadius = BorderRadius.circular(2.0);

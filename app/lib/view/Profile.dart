@@ -23,13 +23,13 @@ class ProfileState extends State<Profile> {
   }
 
   final TextEditingController _currentEmailController =
-      new TextEditingController();
+  new TextEditingController();
   final TextEditingController _newEmailController = new TextEditingController();
   final TextEditingController _currentPasswordController =
-      new TextEditingController();
+  new TextEditingController();
   final TextEditingController _passwordController = new TextEditingController();
   final TextEditingController _passwordConfirmController =
-      new TextEditingController();
+  new TextEditingController();
   final _passwordFormKey = GlobalKey<FormState>();
 
   @override
@@ -79,7 +79,7 @@ class ProfileState extends State<Profile> {
                         margin: EdgeInsets.fromLTRB(15, 15, 15, 0),
                         child: SizedBox(
                           width: double.infinity,
-                          height: 50,
+                          height: 40,
                           child: RaisedButton(
                             color: ThemeGlobals.primaryButtonColor,
                             shape: RoundedRectangleBorder(
@@ -87,7 +87,7 @@ class ProfileState extends State<Profile> {
                             ),
                             child: Text('Change email',
                                 style: TextStyle(
-                                    fontSize: 25.0,
+                                    fontSize: 20.0,
                                     color: ThemeGlobals.secondaryTextColor,
                                     fontWeight: ThemeGlobals.mediumWeight,
                                     fontFamily: 'Montserrat')),
@@ -98,7 +98,7 @@ class ProfileState extends State<Profile> {
                                   return AlertDialog(
                                     shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.all(
-                                            Radius.circular(25.0))),
+                                            Radius.circular(5.0))),
                                     content: Container(
                                       width: 250.0,
                                       height: 150.0,
@@ -110,26 +110,26 @@ class ProfileState extends State<Profile> {
                                               padding: EdgeInsets.all(8.0),
                                               child: TextFormField(
                                                 controller:
-                                                    _currentEmailController,
+                                                _currentEmailController,
                                                 decoration: InputDecoration(
                                                     contentPadding:
-                                                        EdgeInsets.fromLTRB(
-                                                            20.0,
-                                                            15.0,
-                                                            20.0,
-                                                            15.0),
+                                                    EdgeInsets.fromLTRB(
+                                                        20.0,
+                                                        15.0,
+                                                        20.0,
+                                                        15.0),
                                                     filled: true,
                                                     fillColor: ThemeGlobals
                                                         .buttonFillColor,
                                                     prefixIcon:
-                                                        Icon(Icons.mail),
+                                                    Icon(Icons.mail),
                                                     hintText: 'Email',
                                                     labelText: 'Current Email*',
                                                     border: OutlineInputBorder(
                                                         borderRadius: ThemeGlobals
                                                             .dialogInputRadius,
                                                         borderSide:
-                                                            BorderSide.none)),
+                                                        BorderSide.none)),
                                               ),
                                             ),
                                             Padding(
@@ -138,23 +138,23 @@ class ProfileState extends State<Profile> {
                                                 controller: _newEmailController,
                                                 decoration: InputDecoration(
                                                     contentPadding:
-                                                        EdgeInsets.fromLTRB(
-                                                            20.0,
-                                                            15.0,
-                                                            20.0,
-                                                            15.0),
+                                                    EdgeInsets.fromLTRB(
+                                                        20.0,
+                                                        15.0,
+                                                        20.0,
+                                                        15.0),
                                                     filled: true,
                                                     fillColor: ThemeGlobals
                                                         .buttonFillColor,
                                                     prefixIcon:
-                                                        Icon(Icons.mail),
+                                                    Icon(Icons.mail),
                                                     hintText: 'Email',
                                                     labelText: 'New Email*',
                                                     border: OutlineInputBorder(
                                                         borderRadius: ThemeGlobals
                                                             .dialogInputRadius,
                                                         borderSide:
-                                                            BorderSide.none)),
+                                                        BorderSide.none)),
                                               ),
                                             ),
                                           ],
@@ -168,13 +168,13 @@ class ProfileState extends State<Profile> {
                                                 fontSize: 15.0,
                                                 color: Colors.black,
                                                 fontWeight:
-                                                    ThemeGlobals.mediumWeight,
+                                                ThemeGlobals.mediumWeight,
                                                 fontFamily: 'Montserrat')),
                                         color:
-                                            ThemeGlobals.secondaryButtonColor,
+                                        ThemeGlobals.secondaryButtonColor,
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
-                                              ThemeGlobals.dialogButtonRadius,
+                                          ThemeGlobals.dialogButtonRadius,
                                         ),
                                         onPressed: () {
                                           Navigator.of(context).pop();
@@ -186,17 +186,18 @@ class ProfileState extends State<Profile> {
                                                 fontSize: 15.0,
                                                 color: Colors.black,
                                                 fontWeight:
-                                                    ThemeGlobals.mediumWeight,
+                                                ThemeGlobals.mediumWeight,
                                                 fontFamily: 'Montserrat')),
                                         color: ThemeGlobals.confirmButtonColor,
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
-                                              ThemeGlobals.dialogButtonRadius,
+                                          ThemeGlobals.dialogButtonRadius,
                                         ),
-                                        onPressed: () {
-                                          _profileController.changeEmail(
-                                              _currentEmailController.text,
-                                              _newEmailController.text);
+                                        onPressed: () async {
+                                          bool result = await _profileController.changeEmail(_currentEmailController.text, _newEmailController.text);
+                                          if (result) {
+                                            Navigator.of(context).pop();
+                                          }
                                         },
                                       ),
                                     ],
@@ -211,7 +212,7 @@ class ProfileState extends State<Profile> {
                         margin: EdgeInsets.fromLTRB(15, 15, 15, 15),
                         child: SizedBox(
                           width: double.infinity,
-                          height: 50,
+                          height: 40,
                           child: RaisedButton(
                             color: Colors.blue.shade300,
                             shape: RoundedRectangleBorder(
@@ -219,7 +220,7 @@ class ProfileState extends State<Profile> {
                             ),
                             child: Text('Change password',
                                 style: TextStyle(
-                                    fontSize: 25.0,
+                                    fontSize: 20.0,
                                     color: ThemeGlobals.secondaryTextColor,
                                     fontWeight: ThemeGlobals.mediumWeight,
                                     fontFamily: 'Montserrat')),
@@ -230,7 +231,7 @@ class ProfileState extends State<Profile> {
                                   return AlertDialog(
                                     shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.all(
-                                            Radius.circular(25.0))),
+                                            Radius.circular(5.0))),
                                     content: Container(
                                       width: 260.0,
                                       child: Form(
@@ -242,28 +243,28 @@ class ProfileState extends State<Profile> {
                                               padding: EdgeInsets.all(8.0),
                                               child: TextFormField(
                                                 controller:
-                                                    _currentPasswordController,
+                                                _currentPasswordController,
                                                 obscureText: true,
                                                 decoration: InputDecoration(
                                                     contentPadding:
-                                                        EdgeInsets.fromLTRB(
-                                                            20.0,
-                                                            15.0,
-                                                            20.0,
-                                                            15.0),
+                                                    EdgeInsets.fromLTRB(
+                                                        20.0,
+                                                        15.0,
+                                                        20.0,
+                                                        15.0),
                                                     filled: true,
                                                     fillColor: ThemeGlobals
                                                         .buttonFillColor,
                                                     prefixIcon:
-                                                        Icon(Icons.lock),
+                                                    Icon(Icons.lock),
                                                     hintText: 'Password',
                                                     labelText:
-                                                        'Current Password*',
+                                                    'Current Password*',
                                                     border: OutlineInputBorder(
                                                         borderRadius: ThemeGlobals
                                                             .dialogInputRadius,
                                                         borderSide:
-                                                            BorderSide.none)),
+                                                        BorderSide.none)),
                                               ),
                                             ),
                                             Padding(
@@ -273,51 +274,51 @@ class ProfileState extends State<Profile> {
                                                 obscureText: true,
                                                 decoration: InputDecoration(
                                                     contentPadding:
-                                                        EdgeInsets.fromLTRB(
-                                                            20.0,
-                                                            15.0,
-                                                            20.0,
-                                                            15.0),
+                                                    EdgeInsets.fromLTRB(
+                                                        20.0,
+                                                        15.0,
+                                                        20.0,
+                                                        15.0),
                                                     filled: true,
                                                     fillColor: ThemeGlobals
                                                         .buttonFillColor,
                                                     prefixIcon:
-                                                        Icon(Icons.lock),
+                                                    Icon(Icons.lock),
                                                     hintText: 'Password',
                                                     labelText: 'New Password*',
                                                     border: OutlineInputBorder(
                                                         borderRadius: ThemeGlobals
                                                             .dialogInputRadius,
                                                         borderSide:
-                                                            BorderSide.none)),
+                                                        BorderSide.none)),
                                               ),
                                             ),
                                             Padding(
                                               padding: EdgeInsets.all(8.0),
                                               child: TextFormField(
                                                 controller:
-                                                    _passwordConfirmController,
+                                                _passwordConfirmController,
                                                 obscureText: true,
                                                 decoration: InputDecoration(
                                                     contentPadding:
-                                                        EdgeInsets.fromLTRB(
-                                                            20.0,
-                                                            15.0,
-                                                            20.0,
-                                                            15.0),
+                                                    EdgeInsets.fromLTRB(
+                                                        20.0,
+                                                        15.0,
+                                                        20.0,
+                                                        15.0),
                                                     filled: true,
                                                     fillColor: ThemeGlobals
                                                         .buttonFillColor,
                                                     prefixIcon:
-                                                        Icon(Icons.lock),
+                                                    Icon(Icons.lock),
                                                     hintText: 'Password',
                                                     labelText:
-                                                        'Confirm Password*',
+                                                    'Confirm Password*',
                                                     border: OutlineInputBorder(
                                                         borderRadius: ThemeGlobals
                                                             .dialogInputRadius,
                                                         borderSide:
-                                                            BorderSide.none)),
+                                                        BorderSide.none)),
                                               ),
                                             ),
                                           ],
@@ -331,13 +332,13 @@ class ProfileState extends State<Profile> {
                                                 fontSize: 15.0,
                                                 color: Colors.black,
                                                 fontWeight:
-                                                    ThemeGlobals.mediumWeight,
+                                                ThemeGlobals.mediumWeight,
                                                 fontFamily: 'Montserrat')),
                                         color:
-                                            ThemeGlobals.secondaryButtonColor,
+                                        ThemeGlobals.secondaryButtonColor,
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
-                                              ThemeGlobals.dialogButtonRadius,
+                                          ThemeGlobals.dialogButtonRadius,
                                         ),
                                         onPressed: () {
                                           Navigator.of(context).pop();
@@ -349,12 +350,12 @@ class ProfileState extends State<Profile> {
                                                 fontSize: 15.0,
                                                 color: Colors.black,
                                                 fontWeight:
-                                                    ThemeGlobals.mediumWeight,
+                                                ThemeGlobals.mediumWeight,
                                                 fontFamily: 'Montserrat')),
                                         color: ThemeGlobals.confirmButtonColor,
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
-                                              ThemeGlobals.dialogButtonRadius,
+                                          ThemeGlobals.dialogButtonRadius,
                                         ),
                                         onPressed: () {
                                           _profileController.changePassword(
@@ -377,27 +378,119 @@ class ProfileState extends State<Profile> {
                 ),
               ),
               Container(
-                margin: EdgeInsets.fromLTRB(0, 50, 0, 0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: RaisedButton(
-                    color: ThemeGlobals.dangerButtonColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: ThemeGlobals.buttonBorderRadius,
-                    ),
-                    child: Text('Logout',
-                        style: TextStyle(
-                            fontSize: 25.0,
-                            color: ThemeGlobals.secondaryTextColor,
-                            fontWeight: ThemeGlobals.mediumWeight,
-                            fontFamily: 'Montserrat')),
-                    onPressed: () {
-                      _profileController.logout();
-                    },
-                  ),
-                ),
-              ),
+                  margin: EdgeInsets.fromLTRB(0, 100, 0, 0),
+                  child: ButtonBar(
+                    children: <Widget>[
+                      SizedBox(
+                        height: 40,
+                        width: 100,
+                        child: RaisedButton(
+                          color: ThemeGlobals.secondaryButtonColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: ThemeGlobals.buttonBorderRadius,
+                          ),
+                          child: Text('Logout',
+                              style: TextStyle(
+                                  fontSize: 20.0,
+                                  color: ThemeGlobals.secondaryTextColor,
+                                  fontWeight: ThemeGlobals.mediumWeight,
+                                  fontFamily: 'Montserrat')),
+                          onPressed: () {
+                            _profileController.logout();
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        height: 40,
+                        width: 200,
+                        child: RaisedButton(
+                          color: ThemeGlobals.dangerButtonColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: ThemeGlobals.buttonBorderRadius,
+                          ),
+                          child: Text('Delete Account',
+                              style: TextStyle(
+                                  fontSize: 20.0,
+                                  color: ThemeGlobals.secondaryTextColor,
+                                  fontWeight: ThemeGlobals.mediumWeight,
+                                  fontFamily: 'Montserrat')),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(5.0))),
+                                  content: Container(
+                                    width: 150.0,
+                                    height: 100.0,
+                                    child: Form(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text(
+                                                'Are You sure you want to delete your account? All your data will be lost and this will be irreversible',
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    color: ThemeGlobals
+                                                        .tertiaryTextColor,
+                                                    fontWeight: ThemeGlobals
+                                                        .description,
+                                                    fontFamily: 'Montserrat')),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  actions: [
+                                    FlatButton(
+                                      child: Text("Cancel",
+                                          style: TextStyle(
+                                              fontSize: 15.0,
+                                              color: Colors.black,
+                                              fontWeight:
+                                                  ThemeGlobals.mediumWeight,
+                                              fontFamily: 'Montserrat')),
+                                      color: ThemeGlobals.secondaryButtonColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            ThemeGlobals.dialogButtonRadius,
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    FlatButton(
+                                      child: Text("Confirm",
+                                          style: TextStyle(
+                                              fontSize: 15.0,
+                                              color: Colors.black,
+                                              fontWeight:
+                                                  ThemeGlobals.mediumWeight,
+                                              fontFamily: 'Montserrat')),
+                                      color: ThemeGlobals.confirmButtonColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            ThemeGlobals.dialogButtonRadius,
+                                      ),
+                                      onPressed: () {
+                                        _profileController.changeEmail(
+                                            _currentEmailController.text,
+                                            _newEmailController.text);
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      )
+                    ],
+                  )),
             ],
           ),
         ),

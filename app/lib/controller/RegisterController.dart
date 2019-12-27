@@ -23,22 +23,21 @@ class RegisterController {
     _main.showLogin();
   }
 
-  Future<bool> registerUser(
-      String email, String password, String passwordConfirm) async {
+  Future<bool> registerUser(String email, String password, String passwordConfirm) async {
+
     if (password == passwordConfirm) {
-      if (LoginController.checkInput(email, InputType.Mail) &&
-          LoginController.checkInput(password, InputType.Password)) {
+      if (LoginController.checkInput(email, InputType.Mail) && LoginController.checkInput(password, InputType.Password)) {
         try {
           FirebaseUser user = (await _auth.createUserWithEmailAndPassword(
             email: email,
             password: password,
-          ))
-              .user;
+          )).user;
 
           user.sendEmailVerification();
 
           return true;
-        } catch (e) {
+        }
+        catch (e) {
           print(e.code);
           switch (e.code) {
             case 'ERROR_INVALID_EMAIL':
@@ -54,16 +53,18 @@ class RegisterController {
               Main.showToast('E-Mail address is already in use.');
               break;
             default:
-              //authError = 'Error';
+            //authError = 'Error';
               break;
           }
 
           return false;
         }
-      } else {
+      }
+      else {
         return false;
       }
-    } else {
+    }
+    else {
       Main.showToast('Your passwords do not match.');
       return false;
     }
