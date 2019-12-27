@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parknspot/view/SplashScreen.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/controller/LoginController.dart';
 import 'package:parknspot/controller/MapController.dart';
@@ -18,6 +19,7 @@ class MyApp extends StatefulWidget {
 
 class Main extends State<MyApp> {
   CurrentPage _pageView = CurrentPage.Login;
+  bool _checkedLogin = false;
   bool _loginVisible = true;
   bool _bottomNavBarVisible = false;
 
@@ -33,6 +35,7 @@ class Main extends State<MyApp> {
   Main() {
     _registerController = new RegisterController(this);
     _loginController = new LoginController(this);
+    _checkLogin();
   }
 
   @override
@@ -154,6 +157,24 @@ class Main extends State<MyApp> {
         timeInSecForIos: 1,
         fontSize: 16.0
     );
+  }
+
+  void _checkLogin() async {
+    bool loggedIn = await _loginController.checkLoggedIn();
+
+    if (loggedIn) {
+      setState(() {
+        _checkedLogin = true;
+        _bottomNavBarVisible = true;
+      });
+    }
+    else {
+      setState(() {
+        _checkedLogin = true;
+        _bottomNavBarVisible = false;
+        _loginVisible = true;
+      });
+    }
   }
 }
 
