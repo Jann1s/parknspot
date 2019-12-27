@@ -6,11 +6,11 @@ admin.initializeApp();
 
 exports.createUser = functions.auth.user().onCreate((user) => {
     let mail = user.email;
-    let time = admin.database.ServerValue.TIMESTAMP;
+    let time = Date.now();
 
-    admin.firestore().collection('user').add(
+    admin.firestore().collection('users').add(
         {
-            email: email,
+            email: mail,
             timestamp: time
         });
 });
