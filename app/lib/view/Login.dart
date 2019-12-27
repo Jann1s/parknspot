@@ -4,16 +4,13 @@ import 'package:parknspot/controller/LoginController.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 
 class Login {
-
   final LoginController _loginController;
-  
+
   Login(this._loginController);
 
   TextEditingController _emailController = new TextEditingController();
   TextEditingController _passwordController = new TextEditingController();
 
-
-  
   //bool _checkForUser = false;
 
   /*
@@ -45,9 +42,9 @@ class Login {
                         BoxShadow(
                           color: ThemeGlobals.shadow,
                           blurRadius:
-                          5.0, // has the effect of softening the shadow
+                              5.0, // has the effect of softening the shadow
                           spreadRadius:
-                          0.5, // has the effect of extending the shadow
+                              0.5, // has the effect of extending the shadow
                           offset: Offset(
                             0.0, // horizontal, move right
                             0.0, // vertical, move down
@@ -67,7 +64,7 @@ class Login {
                         filled: true,
                         fillColor: ThemeGlobals.buttonFillColor,
                         contentPadding:
-                        EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
+                            EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
                         border: OutlineInputBorder(
                             borderRadius: ThemeGlobals.inputFieldRadius,
                             borderSide: BorderSide.none)),
@@ -87,7 +84,7 @@ class Login {
                         filled: true,
                         fillColor: Colors.grey.shade200,
                         contentPadding:
-                        EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
+                            EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
                         border: OutlineInputBorder(
                             borderRadius: ThemeGlobals.inputFieldRadius,
                             borderSide: BorderSide.none)),
@@ -113,13 +110,15 @@ class Login {
                             fontWeight: ThemeGlobals.mediumWeight,
                             fontFamily: 'Montserrat')),
                     onPressed: () async {
-                      bool loggedIn = await _loginController.loginUser(_emailController.text, _passwordController.text);
+                      bool loggedIn = await _loginController.loginUser(
+                          _emailController.text, _passwordController.text);
                       if (loggedIn) {
                         _loginController.successfulLogin();
                       }
                     },
                   ),
-                ),ThemeGlobals.smallSpacer,
+                ),
+                ThemeGlobals.smallSpacer,
                 SizedBox(
                   child: FlatButton(
                     onPressed: () {
@@ -159,4 +158,3 @@ class Login {
     );
   }
 }
-

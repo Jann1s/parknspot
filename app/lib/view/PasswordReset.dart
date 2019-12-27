@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/controller/LoginController.dart';
 
-
 class PasswordReset {
   final LoginController _loginController;
   TextEditingController _emailController = new TextEditingController();
@@ -19,7 +18,6 @@ class PasswordReset {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-             
                 ThemeGlobals.mediumSpacer,
                 TextFormField(
                     controller: _emailController,
@@ -29,7 +27,7 @@ class PasswordReset {
                         filled: true,
                         fillColor: ThemeGlobals.buttonFillColor,
                         contentPadding:
-                        EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
+                            EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
                         border: OutlineInputBorder(
                             borderRadius: ThemeGlobals.inputFieldRadius,
                             borderSide: BorderSide.none)),
@@ -40,7 +38,6 @@ class PasswordReset {
                       return null;
                     }),
                 ThemeGlobals.smallSpacer,
-          
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -49,20 +46,34 @@ class PasswordReset {
                     shape: RoundedRectangleBorder(
                       borderRadius: ThemeGlobals.buttonBorderRadius,
                     ),
-                    child: Text('Login',
+                    child: Text('Reset',
                         style: TextStyle(
                             fontSize: 25.0,
                             color: ThemeGlobals.secondaryTextColor,
                             fontWeight: ThemeGlobals.mediumWeight,
                             fontFamily: 'Montserrat')),
                     onPressed: () async {
-                      bool reset = await _loginController.resetPassword(_emailController.text);
-                      if(reset){
-                        _loginController.showLogin();
-                      }
+                      await _loginController
+                          .resetPassword(_emailController.text);
+                      _loginController.showLogin();
                     },
                   ),
                 ),
+                SizedBox(
+                  child: FlatButton(
+                    onPressed: () {
+                      _loginController.showLogin();
+                    },
+                    hoverColor: Colors.teal,
+                    child: Center(
+                      child: Text('Back to Login',
+                          style: TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: ThemeGlobals.description,
+                              fontFamily: 'Montserrat')),
+                    ),
+                  ),
+                )
               ],
             ),
           ),
