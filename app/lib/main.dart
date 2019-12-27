@@ -18,7 +18,7 @@ class MyApp extends StatefulWidget {
 }
 
 class Main extends State<MyApp> {
-  CurrentPage _pageView = CurrentPage.Login;
+  CurrentPage _pageView = CurrentPage.Splashscreen;
   bool _checkedLogin = false;
   bool _loginVisible = true;
   bool _bottomNavBarVisible = false;
@@ -88,6 +88,9 @@ class Main extends State<MyApp> {
     else if (CurrentPage.ForgotPassword == _pageView) {
       return _loginController.getResetView();
     }
+    else if (CurrentPage.Splashscreen == _pageView) {
+      return SplashScreen();
+    }
   }
 
   void _onPageChanged(int page) {
@@ -134,7 +137,10 @@ class Main extends State<MyApp> {
   }
 
   void successfulLogin() {
-    setState(() => _pageView = CurrentPage.MainApp);
+    setState(() {
+      _pageView = CurrentPage.MainApp;
+      _bottomNavBarVisible = true;
+    });
   }
 
   void showLogin() {
@@ -163,16 +169,11 @@ class Main extends State<MyApp> {
     bool loggedIn = await _loginController.checkLoggedIn();
 
     if (loggedIn) {
-      setState(() {
-        _checkedLogin = true;
-        _bottomNavBarVisible = true;
-      });
+      successfulLogin();
     }
     else {
       setState(() {
-        _checkedLogin = true;
-        _bottomNavBarVisible = false;
-        _loginVisible = true;
+        _pageView = CurrentPage.Login;
       });
     }
   }
