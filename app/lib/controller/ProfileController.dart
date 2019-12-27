@@ -14,12 +14,10 @@ class ProfileController {
       if (!LoginController.checkInput(currentEmail, InputType.Mail)) {
         Main.showToast('Your current E-Mail input is invalid.');
         return false;
-      }
-      else if (!LoginController.checkInput(newEmail, InputType.Mail)) {
+      } else if (!LoginController.checkInput(newEmail, InputType.Mail)) {
         Main.showToast('Your new E-Mail input is invalid.');
         return false;
-      }
-      else {
+      } else {
         await _loginController.getUser().updateEmail(newEmail);
         await _loginController.getUser().sendEmailVerification();
         _loginController.logout();
@@ -27,25 +25,26 @@ class ProfileController {
 
         return true;
       }
-    }
-    else {
+    } else {
       Main.showToast('Please enter your current E-Mail.');
       return false;
     }
   }
 
-  Future<bool> changePassword(String currentPassword, String newPassword, String confirmPassword) async {
+  Future<bool> changePassword(String currentPassword, String newPassword,
+      String confirmPassword) async {
     try {
       if (newPassword == confirmPassword) {
         if (!LoginController.checkInput(newPassword, InputType.Password)) {
           Main.showToast('Password should be at least 8 char long');
           return false;
-        }
-        else {
+        } else {
           FirebaseUser user = _loginController.getUser();
           String email = user.email;
 
-          AuthResult result = await user.reauthenticateWithCredential(EmailAuthProvider.getCredential(email: email, password: currentPassword));
+          AuthResult result = await user.reauthenticateWithCredential(
+              EmailAuthProvider.getCredential(
+                  email: email, password: currentPassword));
           await result.user.updatePassword(newPassword);
           Main.showToast('Password changed successfully');
 
@@ -59,6 +58,19 @@ class ProfileController {
       print(error);
       return false;
     }
+  }
+
+  //Delete User account from Firebase Auth
+  Future<void> deleteUser() async {
+    FirebaseUser user = _loginController.getUser();
+    user.delete().then((_) {
+      Main.showToast('Your account was successfuly deleted');
+      _loginController.logout();
+      _loginController.showLogin();
+    }).catchError((error) {
+      print(error.toString());
+    });
+    return null;
   }
 
   void logout() {
