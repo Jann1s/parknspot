@@ -27,10 +27,10 @@ class ThemeGlobals {
   );
 
 //Raius Styles
-  static BorderRadius buttonBorderRadius = BorderRadius.circular(2.0);
-  static BorderRadius inputFieldRadius = BorderRadius.circular(2.0);
-  static BorderRadius dialogInputRadius = BorderRadius.circular(2.0);
-  static BorderRadius dialogButtonRadius = BorderRadius.circular(2.0);
+  static BorderRadius buttonBorderRadius = BorderRadius.circular(20.0);
+  static BorderRadius inputFieldRadius = BorderRadius.circular(15.0);
+  static BorderRadius dialogInputRadius = BorderRadius.circular(25.0);
+  static BorderRadius dialogButtonRadius = BorderRadius.circular(15.0);
 
   //Font
   static FontWeight heading = FontWeight.bold;

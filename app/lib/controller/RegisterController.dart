@@ -53,7 +53,7 @@ class RegisterController {
               Main.showToast('E-Mail address is already in use.');
               break;
             default:
-              //authError = 'Error';
+            //authError = 'Error';
               break;
           }
 
