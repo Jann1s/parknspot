@@ -15,6 +15,8 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   final Map<String, Marker> _markers = {};
+  List<Placemark> placemarks;
+  Position position;
 
   Completer<GoogleMapController> _controller = Completer();
 
@@ -24,29 +26,29 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   );
 
 //Get address from location
-  Future<String> _getAddress(Position pos) async {
-    List<Placemark> placemarks = await Geolocator()
-        .placemarkFromCoordinates(pos.latitude, pos.longitude);
+  Future<String> _getAddress(position) async {
+    placemarks = await Geolocator()
+        .placemarkFromCoordinates(position.latitude, position.longitude);
     if (placemarks != null && placemarks.isNotEmpty) {
-      final Placemark pos = placemarks[0];
-      return pos.thoroughfare + ', ' + pos.locality;
+      final Placemark position = placemarks[0];
+      return position.thoroughfare + ', ' + position.locality;
     }
     return "";
   }
 
   //Pan/Zoom to current location
-  Future<void> _moveToPosition(Position pos) async {
+  Future<void> _moveToPosition(position) async {
     final GoogleMapController mapController = await _controller.future;
     if (mapController == null) return;
-    print('moving to position ${pos.latitude}, ${pos.longitude}');
+    print('moving to position ${position.latitude}, ${position.longitude}');
     mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-      target: LatLng(pos.latitude, pos.longitude),
+      target: LatLng(position.latitude, position.longitude),
       zoom: 15.0,
     )));
   }
 
 //Get current Location
-  void _getLocation() async {
+  Future<void> _getLocation() async {
     var currentLocation = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
     print(
@@ -62,7 +64,9 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
       final marker = Marker(
         markerId: MarkerId("curr_loc"),
         position: LatLng(currentLocation.latitude, currentLocation.longitude),
-        infoWindow: InfoWindow(title: "YOU"),
+        infoWindow: InfoWindow(
+            title:
+                '${placemarks[0].thoroughfare}, ${placemarks[0].postalCode}'),
         icon: bitmapIcon,
       );
       _markers["Current Location"] = marker;
