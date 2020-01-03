@@ -14,3 +14,11 @@ exports.createUser = functions.auth.user().onCreate((user) => {
             timestamp: time
         });
 });
+
+exports.deleteUser = functions.auth.user().onDelete(user)
+    .document('users/{uid}')
+    ((snap) => {
+        return admin.auth().deleteUser(snap.id)
+            .then(() => console.log('Deleted user with ID:' + snap.id))
+            .catch((error) => console.error('There was an error while deleting user:', error));
+    });
