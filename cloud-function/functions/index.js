@@ -30,6 +30,7 @@ exports.createUser = functions.auth.user().onCreate((user) => {
 exports.createBusinessUser = functions.https.onRequest((req, res) => {
     let apiKey = req.query.apikey;
     let business = req.query.name;
+    let timestamp = Date.now();
     let latitude = parseFloat(req.query.lat);
     let longitude = parseFloat(req.query.lon);
     let location = {
@@ -38,9 +39,10 @@ exports.createBusinessUser = functions.https.onRequest((req, res) => {
 
     admin.firestore().collection('business').add(
         {
-            apiKey: apiKey,
-            business: business,
-            location: location
+            name: business,
+            parkingLocation: location,
+            API: apiKey,
+            timestamp:timestamp       
         });
         
         res => {
@@ -50,16 +52,29 @@ exports.createBusinessUser = functions.https.onRequest((req, res) => {
 });
 
 // Update Business user parking availability
-/* exports.updateBusinessEntry = functions.https.onRequest((req, res) => {
-    let apiKey = null;
-    let parkingAvailability = null;
-    let time = Date.now();
+//Example: https://us-central1-parknspot-262413.cloudfunctions.net/updateBusinessUserAvailability?docidbusiness=ectB0FVLGonCqb7i5OAW&docidlocations=lv4nzaIGodi0BaoKD6v1&availability=FULL
+exports.updateBusinessUserAvailability = functions.https.onRequest((req, res) => {
+    let docIdBusiness = req.query.docidbusiness;
+    let docIdLocations = req.query.docidlocations;
+    let availability = req.query.availability;
+    let timestamp = Date.now();
 
-    admin.firestore().collection('business').add(
+    admin.firestore().collection('locations').doc(docIdLocations).update(
         {
-            timestamp: time
-        });
-}); */
+            availability: availability,
+            timestamp: timestamp
+        }
+    ),
+    admin.firestore().collection('business').doc(docIdBusiness).update(
+        {
+            timestamp: timestamp
+        }
+    );    
+    res => {
+        console.log(res);
+    }
+    return;
+});
 
 // Delete Business user
 //Example: https://us-central1-parknspot-262413.cloudfunctions.net/deleteBusinessUser?docid=ojenefuiweng
