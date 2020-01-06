@@ -26,6 +26,7 @@ exports.createUser = functions.auth.user().onCreate((user) => {
 
 
 // Create Business user
+//Example: https://us-central1-parknspot-262413.cloudfunctions.net/createBusinessUser?apikey=sad06012020&name=sadcompany&lat=37.422&lon=122.084
 exports.createBusinessUser = functions.https.onRequest((req, res) => {
     let apiKey = req.query.apikey;
     let business = req.query.name;
@@ -45,6 +46,7 @@ exports.createBusinessUser = functions.https.onRequest((req, res) => {
         res => {
             console.log(res);
         }
+    return;
 });
 
 // Update Business user parking availability
@@ -60,10 +62,12 @@ exports.createBusinessUser = functions.https.onRequest((req, res) => {
 }); */
 
 // Delete Business user
-/* exports.deleteBusinessUser = functions.https.onRequest(req, res)
-    .document('business/{uid}')
-    ((snap) => {
-        return admin.auth().deleteUser(snap.id)
-            .then(() => console.log('Deleted business user with ID:' + snap.id))
-            .catch((error) => console.error('There was an error while deleting user:', error));
-    }); */
+//Example: https://us-central1-parknspot-262413.cloudfunctions.net/deleteBusinessUser?docid=ojenefuiweng
+exports.deleteBusinessUser = functions.https.onRequest((req, res) => {
+    let docId = req.query.docid;
+    admin.firestore().collection('business').doc(docId).delete();    
+    res => {
+        console.log(res);
+    }
+    return;
+});
