@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "170103333572",
+    "firebase_url": "https://parknspot-262413.firebaseio.com",
+    "project_id": "parknspot-262413",
+    "storage_bucket": "parknspot-262413.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:170103333572:android:30e41e845d0acf8d1f1f91",
+        "android_client_info": {
+          "package_name": "com.sad.parknspot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "170103333572-tbmqaefn73v79gjrm4nfldvua2dpbtft.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWXS9-q8KGgltARYBgRUmSfON0MmQbRIY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "170103333572-tbmqaefn73v79gjrm4nfldvua2dpbtft.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

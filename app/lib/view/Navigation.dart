@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/view/Map.dart';
 import 'package:parknspot/view/Parking.dart';
 import 'package:parknspot/view/Profile.dart';
@@ -18,42 +19,32 @@ class NavigationState extends State<Navigation> {
 
   @override
   Widget build(BuildContext context) {
+    /*
     return MaterialApp(
       home: Scaffold(
         body: PageView(
           controller: _pageController,
           physics: NeverScrollableScrollPhysics(),
           onPageChanged: onPageChanged,
-          children: <Widget>[
-            Parking(), MyMap(), Profile()
-          ],
+          children: <Widget>[Parking(), MyMap(), Profile()],
         ),
-        appBar: PreferredSize(
-            preferredSize: Size.fromHeight(0.0),
-            child: AppBar()
-        ),
+        appBar:
+            PreferredSize(preferredSize: Size.fromHeight(0.0), child: AppBar()),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentPage,
           onTap: onNavigationTap,
-          selectedItemColor: Colors.blue[800],
+          selectedItemColor: ThemeGlobals.parknspotMain,
           items: [
             BottomNavigationBarItem(
                 icon: Icon(Icons.local_parking), title: Text('Parking')),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.map), title: Text('Map')),
+            BottomNavigationBarItem(icon: Icon(Icons.map), title: Text('Map')),
             BottomNavigationBarItem(
                 icon: Icon(Icons.supervised_user_circle),
                 title: Text('Profile')),
           ],
         ),
       ),
-      theme: ThemeData(
-        brightness: Brightness.light,
-        // Define the default font family.
-        fontFamily: 'Montserrat',
-        primarySwatch: Colors.blue,
-      ),
-    );
+    );*/
   }
 
   void onPageChanged(int page) {
@@ -61,7 +52,7 @@ class NavigationState extends State<Navigation> {
   }
 
   void onNavigationTap(int newPage) {
-    switch(newPage) {
+    switch (newPage) {
       case 0:
         _pageController.animateToPage(
           0,
