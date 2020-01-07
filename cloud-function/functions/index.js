@@ -1,5 +1,10 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const googleMapsClient = require('@google/maps').createClient({
+    key: 'AIzaSyAcEYs5nXBC0DlNxZzneG_bLm_W4ZDwf4g',
+    Promise: Promise
+  });
+
 admin.initializeApp();
 
 // This will create a User document with the onCreate trigger of Firebase Authentication
@@ -15,26 +20,22 @@ exports.createUser = functions.auth.user().onCreate((user) => {
         });
 });
 
-/**
- * deleteUser gives 'user not specified' error when deploying 
- * TO BE FIXED
- */
+// This will delete a User document with the onDelete trigger of Firebase Authentication
+exports.deleteUser = functions.auth.user().onDelete((user) => {
+    let mail = user.email;
+    var doc = admin.firestore().collection('users').where('email','==', mail);
 
-/*
-exports.deleteUser = functions.auth.user().onDelete(user)
-    .document('users/{uid}')
-    ((snap) => {
-        return admin.auth().deleteUser(snap.id)
-            .then(() => console.log('Deleted user with ID:' + snap.id))
-            .catch((error) => console.error('There was an error while deleting user:', error));
-    });
-*/
+    doc.get().then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+          doc.ref.delete();
+        });
+      });
+});
+
 
 /**
- * Enter user id, latitude and longitude as parameter using the https request below to alter the last location of the user
- * Unset location hasn't been set since it wasn't specified 
+ * Enter user id, latitude and longitude as parameter using the https request below to alter the last location of the user 
  * Updates timestamp when the location is set
- * Doesn't provide response for some reason and always times out
  */
 //https://us-central1-parknspot-262413.cloudfunctions.net/setLocation?lat=(latitude goes here)&lon=(longitude goes here)&user=(user id goes here)
 exports.setLocation = functions.https.onRequest(async (req,res) =>{
@@ -62,11 +63,7 @@ exports.setLocation = functions.https.onRequest(async (req,res) =>{
 }); 
 /**
  * Enter parking id and availability
- * Availbilty is a string since in firebase I didn't find ENUM 
  * Updates timestamp when availability is changed
- * Not too sure on the information you want to send with this one but either way it works 
- * Doesn't provide response for some reason and always times out
- * I assume this is what it needs to do 
  */
 //https://us-central1-parknspot-262413.cloudfunctions.net/setAvailability?parking=(parking id goes here)&availability=(availability goes here)
 exports.setAvailability = functions.https.onRequest(async (req,res) =>{
@@ -88,12 +85,23 @@ exports.setAvailability = functions.https.onRequest(async (req,res) =>{
           return;
 }); 
 /**
- * Haven't done yet 
- * Still iffy on the details are we saving the parking locations in the database 
- * I assume this just returns an array with the parkings in the specified radius 
- * But but but then how/why do we set availability if we don't save them
- * And if we do save them why? The database would be full of parking locations 
+ * Enter search radius and cordinates
+ * Returns list of parking objects in json
  */
+//https://us-central1-parknspot-262413.cloudfunctions.net/getParkingLocations?rad=(search radius goes here)l&at=(latitude goes here)&lon=(longitude goes here)
 exports.getParkingLocations = functions.https.onRequest(async (req,res) => {
-    //TO DO 
+    var radius = parseFloat(req.query.rad);
+    var lat = parseFloat(req.query.lat); 
+    var lon = parseFloat(req.query.lon);
+    googleMapsClient.placesNearby({
+        language: 'en',
+        location: [lat,lon],
+        radius: radius,
+        opennow: true,
+        type: 'parking'
+      }).asPromise().then((response) => {
+        console.log(response.json)
+      })
+      .catch(err => console.log(err));
 });
+
