@@ -97,13 +97,17 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
             'timestamp' : timestamp
           }).then(function() {
             res.send({
-              'Code': 100,
-              'Status': 'Success'
+              data: {
+                'Code': 100,
+                'Status': 'Success'
+              }
             });
           }).catch(function(error) {
             res.send({
-              'Code' : 200,
-              'Status' : 'Error, try again later'
+              data: {
+                'Code' : 200,
+                'Status' : 'Error, try again later'
+              }
             });
             console.log(error);
           });
@@ -114,13 +118,18 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
             'timestamp' : timestamp
           }).then(function() {
             res.send({
-              'Code': 100,
-              'Status': 'Success'
+              data: {
+                'Code': 100,
+                'Status': 'Success'
+              }
             });
           }).catch(function(error) {
             res.send({
-              'Code' : 200,
-              'Status' : 'Error, try again later'
+              data: {
+                'Code' : 200,
+                'Status' : 'Error, try again later'
+            
+              }
             });
             console.log(error);
           });
