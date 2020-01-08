@@ -1,3 +1,4 @@
+
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const googleMapsClient = require('@google/maps').createClient({
@@ -6,6 +7,7 @@ const googleMapsClient = require('@google/maps').createClient({
   });
 
 admin.initializeApp();
+admin.firestore().settings( { timestampsInSnapshots: true });
 
 // This will create a User document with the onCreate trigger of Firebase Authentication
 
@@ -60,30 +62,80 @@ exports.setLocation = functions.https.onRequest(async (req,res) =>{
             console.log("Error occured");
           }
           return;
-}); 
-/**
- * Enter parking id and availability
- * Updates timestamp when availability is changed
- */
-//https://us-central1-parknspot-262413.cloudfunctions.net/setAvailability?parking=(parking id goes here)&availability=(availability goes here)
-exports.setAvailability = functions.https.onRequest(async (req,res) =>{
+});
 
-    let availability = req.query.availability;
-    let time = Date.now();
+//TODO: get user id and set as reference
+/*
+Input parameters:
+  - availability : int
+  - lat : float
+  - lon : float
+Output parameters:
+  - Status : string
+  - Code : int
+*/
+exports.setAvailability = functions.https.onRequest(async (req,res) => {
+  
+  let availability = req.query.availability;
+  let lat = parseFloat(req.query.lat);
+  let lon = parseFloat(req.query.lon);
+  if(lat != NaN || lon != NaN || availability)
+  {
+    let geo_point = new admin.firestore.GeoPoint(lat,lon);
+    let hrtime = process.hrtime();
+    let timestamp = new admin.firestore.Timestamp(hrtime[0],hrtime[1]);
+    let query = admin.firestore().collection('/locations').where('location','==', geo_point);
 
-    const snapshot = await admin.firestore().collection('/locations').doc(req.query.parking).update(
-        {
-            availability: availability,
-            timestamp: time
+    query.limit(1).get().then(querySnapshot => 
+    {
+      if(!querySnapshot.empty){
+        let doc_id = querySnapshot.docs[0].id;
+        admin.firestore().collection('/locations').doc(doc_id).update({
+          'availability' : availability,
+          'location' : geo_point,
+          'timestamp' : timestamp
+        }).then(function() {
+          res.send({
+            'Code': 100,
+            'Status': 'Success'
+          });
+        }).catch(function(error) {
+          res.send({
+            'Code' : 200,
+            'Status' : 'Error, try again later'
+          });
+          console.log(error);
         });
-        res => {
-            console.log(res);
-          },
-          err => {
-            console.log("Error occured");
-          }
-          return;
-}); 
+      }else{
+        admin.firestore().collection('/locations').add({
+          'availability' : availability,
+          'location' : geo_point,
+          'timestamp' : timestamp
+        }).then(function() {
+          res.send({
+            'Code': 100,
+            'Status': 'Success'
+          });
+        }).catch(function(error) {
+          res.send({
+            'Code' : 200,
+            'Status' : 'Error, try again later'
+          });
+          console.log(error);
+        });
+      }
+    });
+
+  }
+  else
+  {
+    res.send({
+      'Code' : 201,
+      'Status': 'Incorrect parametrs'
+    });
+  }
+});
+
 /**
  * Enter search radius and cordinates
  * Returns list of parking objects in json
