@@ -79,56 +79,63 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
   let availability = req.query.availability;
   let lat = parseFloat(req.query.lat);
   let lon = parseFloat(req.query.lon);
-  if(lat != NaN || lon != NaN || availability)
-  {
-    let geo_point = new admin.firestore.GeoPoint(lat,lon);
-    let hrtime = process.hrtime();
-    let timestamp = new admin.firestore.Timestamp(hrtime[0],hrtime[1]);
-    let query = admin.firestore().collection('/locations').where('location','==', geo_point);
-
-    query.limit(1).get().then(querySnapshot => 
+  if(availability || lat || lon){
+    if(lat != NaN || lon != NaN)
     {
-      if(!querySnapshot.empty){
-        let doc_id = querySnapshot.docs[0].id;
-        admin.firestore().collection('/locations').doc(doc_id).update({
-          'availability' : availability,
-          'location' : geo_point,
-          'timestamp' : timestamp
-        }).then(function() {
-          res.send({
-            'Code': 100,
-            'Status': 'Success'
-          });
-        }).catch(function(error) {
-          res.send({
-            'Code' : 200,
-            'Status' : 'Error, try again later'
-          });
-          console.log(error);
-        });
-      }else{
-        admin.firestore().collection('/locations').add({
-          'availability' : availability,
-          'location' : geo_point,
-          'timestamp' : timestamp
-        }).then(function() {
-          res.send({
-            'Code': 100,
-            'Status': 'Success'
-          });
-        }).catch(function(error) {
-          res.send({
-            'Code' : 200,
-            'Status' : 'Error, try again later'
-          });
-          console.log(error);
-        });
-      }
-    });
+      let geo_point = new admin.firestore.GeoPoint(lat,lon);
+      let hrtime = process.hrtime();
+      let timestamp = new admin.firestore.Timestamp(hrtime[0],hrtime[1]);
+      let query = admin.firestore().collection('/locations').where('location','==', geo_point);
 
-  }
-  else
-  {
+      query.limit(1).get().then(querySnapshot => 
+      {
+        if(!querySnapshot.empty){
+          let doc_id = querySnapshot.docs[0].id;
+          admin.firestore().collection('/locations').doc(doc_id).update({
+            'availability' : availability,
+            'location' : geo_point,
+            'timestamp' : timestamp
+          }).then(function() {
+            res.send({
+              'Code': 100,
+              'Status': 'Success'
+            });
+          }).catch(function(error) {
+            res.send({
+              'Code' : 200,
+              'Status' : 'Error, try again later'
+            });
+            console.log(error);
+          });
+        }else{
+          admin.firestore().collection('/locations').add({
+            'availability' : availability,
+            'location' : geo_point,
+            'timestamp' : timestamp
+          }).then(function() {
+            res.send({
+              'Code': 100,
+              'Status': 'Success'
+            });
+          }).catch(function(error) {
+            res.send({
+              'Code' : 200,
+              'Status' : 'Error, try again later'
+            });
+            console.log(error);
+          });
+        }
+      });
+
+    }
+    else
+    {
+      res.send({
+        'Code': 202,
+        'Status': 'Incorrect lat or lon'
+      });
+    }
+  }else{
     res.send({
       'Code' : 201,
       'Status': 'Incorrect parametrs'
