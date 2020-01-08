@@ -75,15 +75,23 @@ Output parameters:
   - Code : int
 */
 exports.setAvailability = functions.https.onRequest(async (req,res) => {
-  
-  let availability = req.query.availability;
-  let lat = parseFloat(req.query.lat);
-  let lon = parseFloat(req.query.lon);
-  if(availability || lat || lon){
-    if(lat != NaN || lon != NaN)
+  res.set('Content-Type', 'application/json')
+
+  console.log(req.body.data);
+
+  let availability = req.body.data.availability;
+  let lat = req.body.data.lat;
+  let lon = req.body.data.lon;
+
+  if(availability && lat && lon)
+  {
+    lat = parseFloat(lat);
+    lon = parseFloat(lon);
+    if(lat != NaN && lon != NaN)
     {
       let geo_point = new admin.firestore.GeoPoint(lat,lon);
-      let hrtime = process.hrtime();
+      // TODO: fix timestamp
+      let hrtime = process.hrtime(); 
       let timestamp = new admin.firestore.Timestamp(hrtime[0],hrtime[1]);
       let query = admin.firestore().collection('/locations').where('location','==', geo_point);
 
@@ -140,14 +148,18 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
     else
     {
       res.send({
-        'Code': 202,
-        'Status': 'Incorrect lat or lon'
+        data: {
+          'Code': 202,
+          'Status': 'Incorrect lat or lon'
+        }
       });
     }
   }else{
     res.send({
-      'Code' : 201,
-      'Status': 'Incorrect parametrs'
+      data: {
+        'Code' : 201,
+        'Status': 'Incorrect parameters'
+      }
     });
   }
 });
