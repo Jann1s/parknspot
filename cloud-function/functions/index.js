@@ -34,12 +34,55 @@ exports.deleteUser = functions.auth.user().onDelete((user) => {
       });
 });
 
+exports.createBusinessUser = functions.https.onRequest((req, res) => {
+    let apiKey = req.query.apikey;
+    let business = req.query.name;
+    let timestamp = Date.now();
+    let latitude = parseFloat(req.query.lat);
+    let longitude = parseFloat(req.query.lon);
+    let location = {
+        google: new admin.firestore.GeoPoint(latitude,longitude)
+    };
 
-/**
- * Enter user id, latitude and longitude as parameter using the https request below to alter the last location of the user 
- * Updates timestamp when the location is set
- */
-//https://us-central1-parknspot-262413.cloudfunctions.net/setLocation?lat=(latitude goes here)&lon=(longitude goes here)&user=(user id goes here)
+    admin.firestore().collection('business').add(
+        {
+            name: business,
+            parkingLocation: location,
+            API: apiKey,
+            timestamp:timestamp       
+        });
+        
+        res => {
+            console.log(res);
+        }
+    return;
+});
+
+// Update Business user parking availability
+//Example: https://us-central1-parknspot-262413.cloudfunctions.net/updateBusinessUserAvailability?docidbusiness=ectB0FVLGonCqb7i5OAW&docidlocations=lv4nzaIGodi0BaoKD6v1&availability=FULL
+exports.updateBusinessUserAvailability = functions.https.onRequest((req, res) => {
+    let docIdBusiness = req.query.docidbusiness;
+    let docIdLocations = req.query.docidlocations;
+    let availability = req.query.availability;
+    let timestamp = Date.now();
+
+    admin.firestore().collection('locations').doc(docIdLocations).update(
+        {
+            availability: availability,
+            timestamp: timestamp
+        }
+    ),
+    admin.firestore().collection('business').doc(docIdBusiness).update(
+        {
+            timestamp: timestamp
+        }
+    );    
+    res => {
+        console.log(res);
+    }
+    return;
+});
+
 exports.setLocation = functions.https.onRequest(async (req,res) =>{
     
     let latitude = parseFloat(req.query.lat);
@@ -185,4 +228,3 @@ exports.getParkingLocations = functions.https.onRequest(async (req,res) => {
       })
       .catch(err => console.log(err));
 });
-
