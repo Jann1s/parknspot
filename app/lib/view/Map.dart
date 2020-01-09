@@ -48,17 +48,6 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
       zoom: 15.0,
     )));
   }
-//Search and zoom to address
-
-  void _search() {
-    GoogleMapController mapController;
-    Geolocator().placemarkFromAddress(searchAddress).then((result) {
-      mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-        target: LatLng(position.latitude, position.longitude),
-        zoom: 15.0,
-      )));
-    });
-  }
 
 //Get current Location
   Future<void> _getLocation() async {
@@ -118,9 +107,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.only(left: 15.0, top: 15.0),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.search),
-                        onPressed: _search,
-                      )),
+                          icon: Icon(Icons.search), onPressed: () {})),
                   onChanged: (val) {
                     setState(() {
                       searchAddress = val;
