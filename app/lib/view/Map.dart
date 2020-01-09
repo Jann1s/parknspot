@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:parknspot/ThemeGlobals.dart';
 
 class MyMap extends StatefulWidget {
   State<StatefulWidget> createState() {
@@ -17,6 +18,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   final Map<String, Marker> _markers = {};
   List<Placemark> placemarks;
   Position position;
+  String searchAddress;
 
   Completer<GoogleMapController> _controller = Completer();
 
@@ -45,6 +47,17 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
       target: LatLng(position.latitude, position.longitude),
       zoom: 15.0,
     )));
+  }
+//Search and zoom to address
+
+  void _search() {
+    GoogleMapController mapController;
+    Geolocator().placemarkFromAddress(searchAddress).then((result) {
+      mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+        target: LatLng(position.latitude, position.longitude),
+        zoom: 15.0,
+      )));
+    });
   }
 
 //Get current Location
@@ -89,17 +102,32 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
               });
             },
           ),
-          Container(
-            margin: EdgeInsets.fromLTRB(5, 5, 5, 0),
-            height: 40,
-            color: Colors.white,
-            child: TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Search location',
-              ),
-            ),
-          ),
+          Positioned(
+              top: 15.0,
+              right: 15.0,
+              left: 15.0,
+              child: Container(
+                height: 50.0,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    borderRadius: ThemeGlobals.inputFieldRadius,
+                    color: ThemeGlobals.secondaryTextColor),
+                child: TextField(
+                  decoration: InputDecoration(
+                      hintText: 'Enter Address',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.only(left: 15.0, top: 15.0),
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.search),
+                        onPressed: _search,
+                      )),
+                  onChanged: (val) {
+                    setState(() {
+                      searchAddress = val;
+                    });
+                  },
+                ),
+              )),
         ],
       ),
       floatingActionButton: FloatingActionButton(
