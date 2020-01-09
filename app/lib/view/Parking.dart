@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:parknspot/ThemeGlobals.dart';
+import 'package:parknspot/controller/ParkingController.dart';
+import 'package:geolocator/geolocator.dart';
 
 class Parking extends StatefulWidget {
+
   State<StatefulWidget> createState() {
     return ParkingState();
   }
 }
 
 class ParkingState extends State<Parking> {
-  EAvailability _availability = EAvailability.Full;
+  ParkingController _parkingController;
+  EAvailability _availability;
+
+  ParkingState(){
+    _parkingController = ParkingController(this);
+    
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +45,7 @@ class ParkingState extends State<Parking> {
                   ),
                   Container(
                     child: Text(
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut eleifend ut dolor ut faucibus. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nunc nec mollis tellus, vel dapibus sapien.",
+                        "Set your location and forget about where you parked! Later, you can find your vehicle in the map.",
                         style: TextStyle(
                             fontSize: 18,
                             color: ThemeGlobals.tertiaryTextColor,
@@ -94,7 +103,6 @@ class ParkingState extends State<Parking> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          buildAvailabilityButton("Full", EAvailability.Full),
                           buildAvailabilityButton(
                               "1 - 4 available spots", EAvailability.Low),
                           buildAvailabilityButton(
@@ -103,6 +111,7 @@ class ParkingState extends State<Parking> {
                               "11 - 20 available spots", EAvailability.High),
                           buildAvailabilityButton(
                               "21+ available spots", EAvailability.Empty),
+                          buildAvailabilityButton("Full", EAvailability.Full),
                         ],
                       ),
                     ),
@@ -120,7 +129,102 @@ class ParkingState extends State<Parking> {
                                 color: ThemeGlobals.secondaryTextColor,
                                 fontWeight: ThemeGlobals.mediumWeight,
                                 fontFamily: 'Montserrat')),
-                        onPressed: () {},
+                        onPressed: () async {
+                          Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+                          if(_availability != null)
+                          {
+                            bool operationStatus = await _parkingController.setAvailability(_availability.index, position.latitude, position.longitude);
+                            if(operationStatus){
+                              // Display success message
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context){
+                                  return AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(Radius.circular(5.0))
+                                    ),
+                                    content: Container(
+                                      height: 75,
+                                      width: 150,
+                                      child: Center(
+                                        child: Column(
+                                          children: <Widget>[
+                                            Text('Success!'),
+                                            RaisedButton(
+                                              child: Text('OK'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              );
+                            }else{
+                              // Display error message
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context){
+                                  return AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(Radius.circular(5.0))
+                                    ),
+                                    content: Container(
+                                      height: 75,
+                                      width: 150,
+                                      child: Center(
+                                        child: Column(
+                                          children: <Widget>[
+                                            Text('Ops! Something went wrong...'),
+                                            RaisedButton(
+                                              child: Text('OK'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              );
+                            }
+                          }else{
+                            // Display message stating to select availability
+                            print('_availability not set');
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context){
+                                return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(5.0))
+                                  ),
+                                  content: Container(
+                                    height: 75,
+                                    width: 150,
+                                    child: Center(
+                                      child: Column(
+                                        children: <Widget>[
+                                          Text('Please set an availability'),
+                                          RaisedButton(
+                                            child: Text('OK'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            );
+                          }
+                        },
                       ),
                     ),
                   ],

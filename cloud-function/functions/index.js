@@ -87,6 +87,7 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
   {
     lat = parseFloat(lat);
     lon = parseFloat(lon);
+
     if(lat != NaN && lon != NaN)
     {
       let geo_point = new admin.firestore.GeoPoint(lat,lon);
@@ -106,8 +107,8 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
           }).then(function() {
             res.send({
               data: {
-                'Code': 100,
-                'Status': 'Success'
+                "Code": 100,
+                "Status": "Success"
               }
             });
           }).catch(function(error) {
