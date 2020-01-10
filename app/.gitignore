@@ -79,3 +79,6 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+
+# Files containing keys
+*lib/credentials.dart

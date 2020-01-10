@@ -1,10 +1,16 @@
 import 'dart:async';
+import 'dart:ffi';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import 'package:parknspot/ThemeGlobals.dart';
+import 'package:parknspot/credentials.dart';
+import 'package:parknspot/main.dart';
 
 class MyMap extends StatefulWidget {
   State<StatefulWidget> createState() {
@@ -19,6 +25,10 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   List<Placemark> placemarks;
   Position position;
   String searchAddress;
+  List<String> _placesList;
+  TextEditingController _searchAdress = new TextEditingController();
+
+  final List<String> _suggestedList = ["Newyork", "Amsterdam"];
 
   Completer<GoogleMapController> _controller = Completer();
 
@@ -26,6 +36,35 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
     target: LatLng(52.78586767371929, 6.8975849999999355),
     zoom: 14,
   );
+
+  Future<Void> _getLocationResults(String input) async {
+    final GoogleMapController placesController = await _controller.future;
+    if ((input.isEmpty)) {
+      Main.showToast('Enter search text');
+    } else {
+      String baseURL =
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+      String type = '(regions)';
+      String request = '$baseURL?input=$input&key=$PLACES_API_KEY&type=$type';
+      Response response = await Dio().get(request);
+      final _predictions = response.data['predictions'];
+      final List<String> _displayResults = [];
+      for (var i = 0; i < _predictions.length; i++) {
+        String name = _predictions[i]['description'];
+        _displayResults.add(name);
+        print(name);
+      }
+      // placesController
+      //     .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+      //   target: LatLng(position.latitude, position.longitude),
+      //   zoom: 15.0,
+      // )));
+
+      setState(() {
+        _placesList = _suggestedList;
+      });
+    }
+  }
 
 //Get address from location
   Future<String> _getAddress(position) async {
@@ -108,13 +147,18 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                       contentPadding: EdgeInsets.only(left: 15.0, top: 15.0),
                       suffixIcon: IconButton(
                           icon: Icon(Icons.search), onPressed: () {})),
-                  onChanged: (val) {
-                    setState(() {
-                      searchAddress = val;
-                    });
+                  onChanged: (text) {
+                    _getLocationResults(text);
                   },
                 ),
               )),
+          Expanded(
+            child: ListView.builder(
+              itemCount: 5,
+              itemBuilder: (BuildContext context, int index) =>
+                  placesCard(context, index),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -125,6 +169,25 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
 
       // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  Widget placesCard(BuildContext context, int index) {
+    return Container(
+      child: Card(
+        elevation: 1.0,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: Icon(Icons.album),
+              title: Text("Some text"),
+              subtitle: Text('You sad bro?'),
+            )
+          ],
+        ),
+      ),
+      margin: EdgeInsets.fromLTRB(0, 0, 0, 15),
     );
   }
 }
