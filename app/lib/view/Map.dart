@@ -38,6 +38,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
     zoom: 14,
   );
 
+//Get places suggestions from Places API
   Future<Void> _getLocationResults(String input) async {
     final GoogleMapController placesController = await _controller.future;
     List<Places> _displayResults = [];
@@ -56,12 +57,6 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
         _displayResults.add(Places(name));
         print(name);
       }
-      // placesController
-      //     .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-      //   target: LatLng(position.latitude, position.longitude),
-      //   zoom: 15.0,
-      // )));
-
       setState(() {
         _suggestedList = _displayResults;
       });
@@ -79,7 +74,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
     return "";
   }
 
-  //Pan/Zoom to current location
+  //Zoom to current location
   Future<void> _moveToPosition(position) async {
     final GoogleMapController mapController = await _controller.future;
     if (mapController == null) return;
@@ -152,6 +147,12 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                   onChanged: (text) {
                     _getLocationResults(text);
                   },
+                  onTap: () {
+                    setState(() {
+                      suffixIcon:
+                      IconButton(icon: Icon(Icons.search), onPressed: () {});
+                    });
+                  },
                 ),
               )),
           Container(
@@ -159,38 +160,11 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
             child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: _suggestedList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Card(
-                    elevation: 1.0,
-                    child: InkWell(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          ListTile(
-                            leading: Icon(Icons.album),
-                            title: Text(_suggestedList[index].placeName),
-                          )
-                        ],
-                      ),
-                      onTap: () async {
-                        final GoogleMapController placesController =
-                            await _controller.future;
-                        Geolocator()
-                            .placemarkFromAddress(
-                                _suggestedList[index].placeName)
-                            .then((result) {
-                          placesController.animateCamera(
-                              CameraUpdate.newCameraPosition(CameraPosition(
-                            target: LatLng(result[0].position.latitude,
-                                result[0].position.longitude),
-                            zoom: 15.0,
-                          )));
-                        });
-                      },
-                    ),
-                    margin: EdgeInsets.fromLTRB(0, 5.0, 0, 0),
-                  );
+                itemBuilder: (
+                  BuildContext context,
+                  int index,
+                ) {
+                  return placesCardBuilder(context, index);
                 }),
           ),
         ],
@@ -198,9 +172,50 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
       floatingActionButton: FloatingActionButton(
         onPressed: _getLocation,
         tooltip: 'Get Location',
-        child: Icon(Icons.location_searching),
+        child: Icon(Icons.my_location),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget placesCardBuilder(BuildContext context, int index) {
+    return Card(
+      elevation: 1.0,
+      child: InkWell(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: Icon(Icons.location_city),
+              title: Text(_suggestedList[index].placeName),
+            )
+          ],
+        ),
+        onTap: () async {
+          FocusScopeNode currentFocus = FocusScope.of(context);
+
+          if (!currentFocus.hasPrimaryFocus) {
+            currentFocus.unfocus();
+          }
+
+          final GoogleMapController placesController = await _controller.future;
+          Geolocator()
+              .placemarkFromAddress(_suggestedList[index].placeName)
+              .then((result) {
+            placesController
+                .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+              target: LatLng(
+                  result[0].position.latitude, result[0].position.longitude),
+              zoom: 10.0,
+            )));
+            setState(() {
+              _suggestedList = [];
+            });
+          });
+        },
+      ),
+      margin: EdgeInsets.fromLTRB(0, 5.0, 0, 0),
     );
   }
 }
