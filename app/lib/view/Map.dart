@@ -147,12 +147,6 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                   onChanged: (text) {
                     _getLocationResults(text);
                   },
-                  onTap: () {
-                    setState(() {
-                      suffixIcon:
-                      IconButton(icon: Icon(Icons.search), onPressed: () {});
-                    });
-                  },
                 ),
               )),
           Container(
@@ -178,6 +172,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
     );
   }
 
+//Suggestions card builder
   Widget placesCardBuilder(BuildContext context, int index) {
     return Card(
       elevation: 1.0,
