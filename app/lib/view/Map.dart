@@ -11,6 +11,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/credentials.dart';
 import 'package:parknspot/main.dart';
+import 'package:parknspot/Models/Places.dart';
 
 class MyMap extends StatefulWidget {
   State<StatefulWidget> createState() {
@@ -25,10 +26,10 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   List<Placemark> placemarks;
   Position position;
   String searchAddress;
-  List<String> _placesList;
+  List<Places> _placesList;
   TextEditingController _searchAdress = new TextEditingController();
 
-  final List<String> _suggestedList = ["Newyork", "Amsterdam"];
+  List<Places> _suggestedList = [];
 
   Completer<GoogleMapController> _controller = Completer();
 
@@ -39,6 +40,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
 
   Future<Void> _getLocationResults(String input) async {
     final GoogleMapController placesController = await _controller.future;
+    List<Places> _displayResults = [];
     if ((input.isEmpty)) {
       Main.showToast('Enter search text');
     } else {
@@ -48,10 +50,10 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
       String request = '$baseURL?input=$input&key=$PLACES_API_KEY&type=$type';
       Response response = await Dio().get(request);
       final _predictions = response.data['predictions'];
-      final List<String> _displayResults = [];
+
       for (var i = 0; i < _predictions.length; i++) {
         String name = _predictions[i]['description'];
-        _displayResults.add(name);
+        _displayResults.add(Places(name));
         print(name);
       }
       // placesController
@@ -61,7 +63,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
       // )));
 
       setState(() {
-        _placesList = _suggestedList;
+        _suggestedList = _displayResults;
       });
     }
   }
@@ -152,12 +154,29 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                   },
                 ),
               )),
-          Expanded(
+          Container(
+            margin: EdgeInsets.fromLTRB(15.0, 65.0, 15.0, 0),
             child: ListView.builder(
-              itemCount: 5,
-              itemBuilder: (BuildContext context, int index) =>
-                  placesCard(context, index),
-            ),
+                shrinkWrap: true,
+                itemCount: _suggestedList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Card(
+                    elevation: 1.0,
+                    child: InkWell(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          ListTile(
+                            leading: Icon(Icons.album),
+                            title: Text(_suggestedList[index].placeName),
+                          )
+                        ],
+                      ),
+                    ),
+                    margin: EdgeInsets.fromLTRB(0, 5.0, 0, 0),
+                  );
+                }),
           ),
         ],
       ),
@@ -167,27 +186,6 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
         child: Icon(Icons.location_searching),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-
-      // This trailing comma makes auto-formatting nicer for build methods.
-    );
-  }
-
-  Widget placesCard(BuildContext context, int index) {
-    return Container(
-      child: Card(
-        elevation: 1.0,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ListTile(
-              leading: Icon(Icons.album),
-              title: Text("Some text"),
-              subtitle: Text('You sad bro?'),
-            )
-          ],
-        ),
-      ),
-      margin: EdgeInsets.fromLTRB(0, 0, 0, 15),
     );
   }
 }
