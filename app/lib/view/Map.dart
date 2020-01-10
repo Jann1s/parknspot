@@ -173,6 +173,21 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                           )
                         ],
                       ),
+                      onTap: () async {
+                        final GoogleMapController placesController =
+                            await _controller.future;
+                        Geolocator()
+                            .placemarkFromAddress(
+                                _suggestedList[index].placeName)
+                            .then((result) {
+                          placesController.animateCamera(
+                              CameraUpdate.newCameraPosition(CameraPosition(
+                            target: LatLng(result[0].position.latitude,
+                                result[0].position.longitude),
+                            zoom: 15.0,
+                          )));
+                        });
+                      },
                     ),
                     margin: EdgeInsets.fromLTRB(0, 5.0, 0, 0),
                   );
