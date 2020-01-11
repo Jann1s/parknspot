@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/controller/ParkingController.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:parknspot/APIBackend.dart';
 
 class Parking extends StatefulWidget {
 
@@ -13,14 +13,92 @@ class Parking extends StatefulWidget {
 class ParkingState extends State<Parking> {
   ParkingController _parkingController;
   EAvailability _availability;
+  bool _isLocationSet = false;
 
-  ParkingState(){
+  ParkingState() {
     _parkingController = ParkingController(this);
-    
+    _checkLocationSet();
+  }
+
+  void _checkLocationSet() async {
+    bool tmpLocSet = await APIBackend().isUserLocationSet();
+    setState(() {
+      _isLocationSet = tmpLocSet; 
+    });
+  }
+
+  Widget _buildLocationWidget(){
+    if(!_isLocationSet)
+    {
+      return RaisedButton(
+        color: ThemeGlobals.primaryButtonColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: ThemeGlobals.buttonBorderRadius,
+        ),
+        child: Text('Set location',
+          style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.white,
+              fontWeight: ThemeGlobals.mediumWeight,
+              fontFamily: 'Montserrat'
+            )
+          ),
+        onPressed: () async {
+          _parkingController.setLocation();
+          setState(() {
+            _isLocationSet = true;
+          });
+        },
+      );
+    }else{
+      return Row(
+        children: <Widget>[
+          RaisedButton(
+            color: ThemeGlobals.primaryButtonColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: ThemeGlobals.buttonBorderRadius,
+            ),
+            child: Text('Unset location',
+              style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.white,
+                  fontWeight: ThemeGlobals.mediumWeight,
+                  fontFamily: 'Montserrat'
+                )
+              ),
+            onPressed: () async {
+              _parkingController.unsetLocation();
+              setState(() {
+                _isLocationSet = false;
+              });
+            },
+          ),
+          RaisedButton(
+            color: ThemeGlobals.primaryButtonColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: ThemeGlobals.buttonBorderRadius,
+            ),
+            child: Text('Find my car',
+              style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.white,
+                  fontWeight: ThemeGlobals.mediumWeight,
+                  fontFamily: 'Montserrat'
+                )
+              ),
+            onPressed: () async {
+              if(_isLocationSet){
+
+              }
+            },
+          )
+        ],
+      );
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Container(
         alignment: Alignment.center,
         margin: EdgeInsets.all(30),
@@ -53,6 +131,8 @@ class ParkingState extends State<Parking> {
                             fontFamily: 'Montserrat')),
                     margin: EdgeInsets.fromLTRB(0, 0, 0, 15),
                   ),
+                  _buildLocationWidget()
+                  /*
                   SizedBox(
                     width: double.infinity,
                     height: 40,
@@ -62,14 +142,23 @@ class ParkingState extends State<Parking> {
                         borderRadius: ThemeGlobals.buttonBorderRadius,
                       ),
                       child: Text('Set location',
-                          style: TextStyle(
-                              fontSize: 20.0,
-                              color: Colors.white,
-                              fontWeight: ThemeGlobals.mediumWeight,
-                              fontFamily: 'Montserrat')),
-                      onPressed: () {},
+                        style: TextStyle(
+                            fontSize: 20.0,
+                            color: Colors.white,
+                            fontWeight: ThemeGlobals.mediumWeight,
+                            fontFamily: 'Montserrat'
+                          )
+                        ),
+                      onPressed: () async {
+                        
+
+                        setState(() {
+                          _isLocationSet = true;
+                        });
+                      },
                     ),
                   ),
+                  */
                 ],
               ),
               Container(
@@ -130,10 +219,9 @@ class ParkingState extends State<Parking> {
                                 fontWeight: ThemeGlobals.mediumWeight,
                                 fontFamily: 'Montserrat')),
                         onPressed: () async {
-                          Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
                           if(_availability != null)
                           {
-                            bool operationStatus = await _parkingController.setAvailability(_availability.index, position.latitude, position.longitude);
+                            bool operationStatus = await _parkingController.setAvailability(_availability.index);
                             if(operationStatus){
                               // Display success message
                               showDialog(
