@@ -112,8 +112,10 @@ exports.setLocation = functions.https.onCall((data,context) => {
       }
     }else{
       if(!context.auth){
-        return new functions.https.HttpsError('failed-precondition', 'The function must be called ' +
-        'while authenticated.');
+        return{ 
+          Code : 201,
+          Status : 'Incorrect parameters'
+        }          
       }else{
         let location = {
           google: new admin.firestore.GeoPoint(lat,lon)
@@ -181,8 +183,10 @@ Output parameters:
 */
 exports.unSetLocation = functions.https.onCall((data,context) => {
     if(!context.auth){
-      return new functions.https.HttpsError('failed-precondition', 'The function must be called ' +
-      'while authenticated.');
+      return{ 
+        Code : 201,
+        Status : 'Incorrect parameters'
+      }               
     }else{
       let time = Date.now();
       const mail = context.auth.token.email || null;
