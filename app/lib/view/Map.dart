@@ -188,12 +188,6 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
           ],
         ),
         onTap: () async {
-          FocusScopeNode currentFocus = FocusScope.of(context);
-
-          if (!currentFocus.hasPrimaryFocus) {
-            currentFocus.unfocus();
-          }
-
           final GoogleMapController placesController = await _controller.future;
           Geolocator()
               .placemarkFromAddress(_suggestedList[index].placeName)
