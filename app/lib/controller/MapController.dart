@@ -1,3 +1,1 @@
-class MapController {
-  
-}
+class MapController {}
