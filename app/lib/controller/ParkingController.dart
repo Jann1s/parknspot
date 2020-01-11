@@ -1,6 +1,6 @@
 import 'package:parknspot/view/Parking.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
 
 class ParkingController {
   ParkingState _parkingState;
@@ -9,7 +9,9 @@ class ParkingController {
     _parkingState  = parkingState;
   }
 
-  Future<bool> setAvailability(int availability, double lat, double lon) async {
+  Future<bool> setAvailability(int availability) async {
+    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
     final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
       functionName: 'setAvailability'
     );
@@ -17,8 +19,8 @@ class ParkingController {
     try{
       HttpsCallableResult resp = await callable.call(<String, dynamic>{
         'availability' : availability,
-        'lat' : lat,
-        'lon' : lon
+        'lat' : position.latitude,
+        'lon' : position.longitude
       });
       
       if(resp.data['Code'] == 100){
@@ -38,11 +40,58 @@ class ParkingController {
     }
   }
 
-  void setLocation(){
+  Future<bool> setLocation() async {
+    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
+    final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
+      functionName: 'setLocation'
+    );
+
+    try {
+      HttpsCallableResult resp = await callable.call(<String, dynamic>{
+        'lat' : position.latitude,
+        'lon' : position.longitude
+      });
+
+      if(resp.data['Code'] == 100){
+        return true;
+      }else{
+        print('code != 100');
+        return false;
+      }
+    }on CloudFunctionsException catch (e) {
+      print('CloudFunctionsException');
+      print(e);
+      return false;
+    }catch(e){
+      print('Generic exception');
+      print(e);
+      return false;
+    }
   }
 
-  void unsetLocation(){
+  Future<bool> unsetLocation() async {
+    final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
+      functionName: 'unSetLocation'
+    );
 
+    try {
+      HttpsCallableResult resp = await callable.call();
+
+      if(resp.data['Code'] == 100){
+        return true;
+      }else{
+        print('code != 100');
+        return false;
+      }
+    }on CloudFunctionsException catch (e) {
+      print('CloudFunctionsException');
+      print(e);
+      return false;
+    }catch(e){
+      print('Generic exception');
+      print(e);
+      return false;
+    }
   }
 }
