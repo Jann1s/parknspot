@@ -61,16 +61,24 @@ class ProfileController {
   }
 
   //Delete User account from Firebase Auth
-  Future<void> deleteUser() async {
+  Future<bool> deleteUser() async {
     FirebaseUser user = _loginController.getUser();
-    user.delete().then((_) {
+    try {
+      await user.delete();
       Main.showToast('Your account was successfuly deleted');
       _loginController.logout();
       _loginController.showLogin();
-    }).catchError((error) {
-      print(error.toString());
-    });
-    return null;
+      return true;
+    }
+    catch(e) {
+      switch (e.code) {
+          case 'ERROR_REQUIRES_RECENT_LOGIN':
+            Main.showToast('Logout and Login again to verify yourself!');
+            break;
+        }
+    }
+
+    return false;
   }
 
   void logout() {

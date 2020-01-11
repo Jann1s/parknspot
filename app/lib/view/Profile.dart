@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parknspot/controller/LoginController.dart';
 import 'package:parknspot/controller/ProfileController.dart';
+import 'package:parknspot/main.dart';
 import 'package:parknspot/view/Login.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 
@@ -479,8 +480,11 @@ class ProfileState extends State<Profile> {
                                         borderRadius:
                                             ThemeGlobals.dialogButtonRadius,
                                       ),
-                                      onPressed: () {
-                                        _profileController.deleteUser();
+                                      onPressed: () async {
+                                        bool result = await _profileController.deleteUser();
+                                        if (!result) {
+                                          Main.showToast('Logout and Login again to verify yourself!');
+                                        }
                                         Navigator.of(context).pop();
                                       },
                                     ),
