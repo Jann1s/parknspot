@@ -140,30 +140,137 @@ exports.isLocationSet = functions.https.onCall(async (data, context) =>{
   }
 });
 
-exports.setLocation = functions.https.onRequest(async (req,res) =>{
-    
-    let latitude = parseFloat(req.query.lat);
-    let longitude = parseFloat(req.query.lon);
-    
-    let location = {
-        google: new admin.firestore.GeoPoint(latitude,longitude)
-    }
-    let time = Date.now();
+//TODO: get user id and set as reference
+/*
+Input parameters:
+  - lat : float
+  - lon : float
+Output parameters:
+  - Status : string
+  - Code : int
+*/
 
-    const snapshot = await admin.firestore().collection('/users').doc(req.query.user).update(
-        {
-            location: location,
-            timestamp: time
-        });
-        res => {
-            console.log(res);
-          },
-          err => {
-            console.log("Error occured");
-          }
-          return;
+exports.setLocation = functions.https.onCall((data,context) => {
+  let lat = data.latitude;
+  let lon = data.longitude;
+
+  if(!lat && !lon)
+  {
+    return{
+      Code: 201,
+      Status: 'Incorrect parameters'
+    }  
+  }else{
+    if(lat != NaN && lon != NaN){
+      return{
+        Code: 202,
+        Status: 'Incorrect lat or lon'
+      }
+    }else{
+      if(!context.auth){
+        return{ 
+          Code : 201,
+          Status : 'Incorrect parameters'
+        }          
+      }else{
+        let location = {
+          google: new admin.firestore.GeoPoint(lat,lon)
+        }
+        let time = Date.now();
+        const mail = context.auth.token.email || null;
+
+        let query = admin.firestore().collection('/users').where('email','==', mail);
+        query.limit(1).get().then(querySnapshot => 
+          {
+            if(!querySnapshot.empty){
+              let doc_id = querySnapshot.docs[0].id;
+              return admin.firestore().collection('/users').doc(doc_id).update({
+                location : location,
+                timestamp : time
+              }).then(function() {
+                  let query = admin.firestore().collection('/locations').where('location','==', location);
+                    query.limit(1).get().then(querySnapshot => 
+                    {
+                      if(querySnapshot.empty){
+                        return admin.firestore().collection('/locations').set({
+                          availability: 1,
+                          location : location,
+                          timestamp: time
+                        }).then(function(){
+                          return{ 
+                            Code : 100,
+                            Status : 'Success'
+                          }
+                        }).catch(function(error){
+                          return{ 
+                            Code : 200,
+                            Status : 'Error, try again later'
+                          }
+                        })
+                      }else{
+                        /**
+                         * IDK
+                         */
+                      }
+                    });
+                        
+              }).catch(function(error) {
+                return{
+                  Code : 200,
+                  Status : 'Error, try again later'
+                }
+              });
+            }
+          });
+    
+      } 
+    }
+  }
+
 });
 
+//TODO: get user id and set as reference
+/*
+Input parameters:
+  - NOTHING 
+Output parameters:
+  - Status : string
+  - Code : int
+*/
+exports.unSetLocation = functions.https.onCall((data,context) => {
+    if(!context.auth){
+      return{ 
+        Code : 201,
+        Status : 'Incorrect parameters'
+      }               
+    }else{
+      let time = Date.now();
+      const mail = context.auth.token.email || null;
+
+      let query = admin.firestore().collection('/users').where('email','==', mail);
+      query.limit(1).get().then(querySnapshot => 
+        {
+          if(!querySnapshot.empty){
+            let doc_id = querySnapshot.docs[0].id;
+            return admin.firestore().collection('/users').doc(doc_id).update({
+              location : NULL,
+              timestamp : time
+            }).then(function() {
+              return{ 
+                Code : 100,
+                Status : 'Success'
+              }               
+            }).catch(function(error) {
+              return{
+                Code : 200,
+                Status : 'Error, try again later'
+              }
+            });
+          }
+        });
+  
+    } 
+});
 //TODO: get user id and set as reference
 /*
 Input parameters:
