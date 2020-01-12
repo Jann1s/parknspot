@@ -43,11 +43,11 @@ exports.createBusinessUser = functions.https.onRequest(async (req, res) => {
   let apiKey = Math.random().toString(36).substring(2, 15)+Math.random().toString(36).substring(2, 15)+Math.random().toString(36).substring(2, 15)+Math.random().toString(36).substring(2, 15);
   let timestamp = admin.firestore.FieldValue.serverTimestamp();
   let business = req.body.data.name;
-  let lat = req.body.data.name.lat;
-  let lon = req.body.data.name.lon;
+  let lat = req.body.data.lat;
+  let lon = req.body.data.lon;
 
   //Check if all required parameters are set
-  if(buisness && lat && lon)
+  if(business && lat && lon)
   {
     lat = parseFloat(lat);
     lon = parseFloat(lon);
@@ -109,9 +109,7 @@ exports.updateBusinessUserAvailability = functions.https.onRequest(async (req, r
   let apiKey = req.body.data.apiKey;
   let availability = req.body.data.availability;
   let timestamp = admin.firestore.FieldValue.serverTimestamp();
-  let queryBusinessUser = admin.firestore().collection('/business').where('API','==', apiKey);
-  let geo_point = queryBusinessUser.get('location');
-  let queryLocation = admin.firestore().collection('/locations').where('location','==', geo_point);
+  let queryBusinessUser = admin.firestore().collection('/business').where('API','==', apiKey);  
   
   queryBusinessUser.limit(1).get().then(querySnapshot =>
   {
@@ -126,6 +124,8 @@ exports.updateBusinessUserAvailability = functions.https.onRequest(async (req, r
         }
         //If editing business document was succesful - update location document
       ).then(function(){
+        let geo_point = querySnapshot.docs[0].get('location');
+        let queryLocation = admin.firestore().collection('/locations').where('location','==', geo_point);
         queryLocation.limit(1).get().then(querySnapshot =>
         {
           //Check if requested location exists
