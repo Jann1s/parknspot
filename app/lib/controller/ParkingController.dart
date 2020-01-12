@@ -22,7 +22,7 @@ class ParkingController {
         'lat' : position.latitude,
         'lon' : position.longitude
       });
-      
+
       if(resp.data['Code'] == 100){
         return true;
       }else{
@@ -31,7 +31,9 @@ class ParkingController {
       }
     }on CloudFunctionsException catch(e){
       print('CloudFunctionsException');
-      print(e);
+      print(e.code);
+      print(e.details);
+      print(e.message);
       return false;
     }catch(e){
       print('Generic exception');
