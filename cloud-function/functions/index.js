@@ -83,6 +83,63 @@ exports.updateBusinessUserAvailability = functions.https.onRequest((req, res) =>
     return;
 });
 
+/*
+Input parameters:
+  context.auth.token : firebase.auth.DecodedIdToken
+Output parameters:
+  - Status : string
+  - Code : int
+  - Result : bool, optional
+What it does:
+  Auth user
+  Find user doc
+  Check if location exists in doc, return true, false
+*/
+exports.isLocationSet = functions.https.onCall(async (data, context) =>{
+  // Auth user
+  if(context.auth)
+  {
+    let userEmail = context.auth.token.email;
+    console.log(userEmail);
+    // Find user doc
+    let query = admin.firestore().collection('/users').where('email','==', userEmail);
+
+    return query.limit(1).get().then(querySnapshot => 
+    {
+      let userDoc = querySnapshot.docs[0];
+      // Check if location exists in doc, return true, false
+      let location = userDoc.get('location');
+      if(typeof location !== 'undefined' && location){
+        console.log('Location found');
+        return {
+          'Code' : 100,
+          'Status' : 'Success',
+          'Result' : true
+        };
+      }else{
+        console.log('Location not found')
+        return {
+          'Code' : 100,
+          'Status' : 'Success',
+          'Result' : false
+        };
+      }
+    }).catch(function (error){
+      console.error(error);
+      return {
+        'Code' : 200,
+        'Status' : 'Error, try again later'
+      };
+    });
+  }else{
+    Console.log('Unauth user');
+    return {
+      'Code' : 201,
+      'Status': 'Incorrect parameters'
+    };
+  }
+});
+
 //TODO: get user id and set as reference
 /*
 Input parameters:
@@ -100,10 +157,9 @@ exports.setLocation = functions.https.onCall((data,context) => {
   if(!lat && !lon)
   {
     return{
-    Code: 201,
-    Status: 'Incorrect parameters'
-    }
-    
+      Code: 201,
+      Status: 'Incorrect parameters'
+    }  
   }else{
     if(lat != NaN && lon != NaN){
       return{
@@ -263,13 +319,13 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
               }
             });
           }).catch(function(error) {
+            console.error(error);
             res.send({
               data: {
                 'Code' : 200,
                 'Status' : 'Error, try again later'
               }
             });
-            console.log(error);
           });
         }else{
           admin.firestore().collection('/locations').add({
@@ -284,6 +340,7 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
               }
             });
           }).catch(function(error) {
+            console.error(error);
             res.send({
               data: {
                 'Code' : 200,
@@ -291,11 +348,9 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
             
               }
             });
-            console.log(error);
           });
         }
       });
-
     }
     else
     {
