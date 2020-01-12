@@ -1,4 +1,3 @@
-
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const googleMapsClient = require('@google/maps').createClient({
@@ -12,14 +11,14 @@ admin.firestore().settings( { timestampsInSnapshots: true });
 // This will create a User document with the onCreate trigger of Firebase Authentication
 
 exports.createUser = functions.auth.user().onCreate((user) => {
-    let mail = user.email;
-    let time = Date.now();
+  let mail = user.email;
+  let timestamp = admin.firestore.FieldValue.serverTimestamp();
 
-    admin.firestore().collection('users').add(
-        {
-            email: mail,
-            timestamp: time
-        });
+  admin.firestore().collection('users').add(
+  {
+    'email': mail,
+    'timestamp': timestamp
+  });
 });
 
 // This will delete a User document with the onDelete trigger of Firebase Authentication
@@ -37,7 +36,7 @@ exports.deleteUser = functions.auth.user().onDelete((user) => {
 exports.createBusinessUser = functions.https.onRequest((req, res) => {
     let apiKey = req.query.apikey;
     let business = req.query.name;
-    let timestamp = Date.now();
+    let timestamp = admin.firestore.FieldValue.serverTimestamp();
     let latitude = parseFloat(req.query.lat);
     let longitude = parseFloat(req.query.lon);
     let location = {
@@ -45,12 +44,12 @@ exports.createBusinessUser = functions.https.onRequest((req, res) => {
     };
 
     admin.firestore().collection('business').add(
-        {
-            name: business,
-            parkingLocation: location,
-            API: apiKey,
-            timestamp:timestamp       
-        });
+    {
+        'name' : business,
+        'parkingLocation' : location,
+        'API' : apiKey,
+        'timestamp' : timestamp       
+    });
         
         res => {
             console.log(res);
@@ -64,17 +63,16 @@ exports.updateBusinessUserAvailability = functions.https.onRequest((req, res) =>
     let docIdBusiness = req.query.docidbusiness;
     let docIdLocations = req.query.docidlocations;
     let availability = req.query.availability;
-    let timestamp = Date.now();
+    let timestamp = admin.firestore.FieldValue.serverTimestamp();
 
     admin.firestore().collection('locations').doc(docIdLocations).update(
-        {
-            availability: availability,
-            timestamp: timestamp
-        }
-    ),
+    {
+        'availability' : availability,
+        'timestamp' : timestamp
+    }),
     admin.firestore().collection('business').doc(docIdBusiness).update(
         {
-            timestamp: timestamp
+            'timestamp': timestamp
         }
     );    
     res => {
@@ -95,7 +93,7 @@ What it does:
   Find user doc
   Check if location exists in doc, return true, false
 */
-exports.isLocationSet = functions.https.onCall(async (data, context) =>{
+exports.isLocationSet = functions.https.onCall((data, context) =>{
   // Auth user
   if(context.auth)
   {
@@ -143,134 +141,164 @@ exports.isLocationSet = functions.https.onCall(async (data, context) =>{
 //TODO: get user id and set as reference
 /*
 Input parameters:
+  - context.auth.token : firebase.auth.DecodedIdToken
   - lat : float
   - lon : float
 Output parameters:
   - Status : string
   - Code : int
 */
-
 exports.setLocation = functions.https.onCall((data,context) => {
-  let lat = data.latitude;
-  let lon = data.longitude;
+  let lat = data.lat;
+  let lon = data.lon;
 
-  if(!lat && !lon)
+  if(lat && lon)
   {
-    return{
-      Code: 201,
-      Status: 'Incorrect parameters'
-    }  
-  }else{
-    if(lat != NaN && lon != NaN){
-      return{
-        Code: 202,
-        Status: 'Incorrect lat or lon'
-      }
-    }else{
-      if(!context.auth){
-        return{ 
-          Code : 201,
-          Status : 'Incorrect parameters'
-        }          
-      }else{
-        let location = {
-          google: new admin.firestore.GeoPoint(lat,lon)
-        }
-        let time = Date.now();
-        const mail = context.auth.token.email || null;
+    if(context.auth)
+    {
+      lat = parseFloat(lat);
+      lon = parseFloat(lon);
+
+      if(lat != NaN && lon != NaN)
+      {
+        let location = new admin.firestore.GeoPoint(lat,lon);
+        let timestamp = admin.firestore.FieldValue.serverTimestamp();
+        let mail = context.auth.token.email;
 
         let query = admin.firestore().collection('/users').where('email','==', mail);
-        query.limit(1).get().then(querySnapshot => 
-          {
-            if(!querySnapshot.empty){
-              let doc_id = querySnapshot.docs[0].id;
-              return admin.firestore().collection('/users').doc(doc_id).update({
-                location : location,
-                timestamp : time
-              }).then(function() {
-                  let query = admin.firestore().collection('/locations').where('location','==', location);
-                    query.limit(1).get().then(querySnapshot => 
-                    {
-                      if(querySnapshot.empty){
-                        return admin.firestore().collection('/locations').set({
-                          availability: 1,
-                          location : location,
-                          timestamp: time
-                        }).then(function(){
-                          return{ 
-                            Code : 100,
-                            Status : 'Success'
-                          }
-                        }).catch(function(error){
-                          return{ 
-                            Code : 200,
-                            Status : 'Error, try again later'
-                          }
-                        })
-                      }else{
-                        /**
-                         * IDK
-                         */
-                      }
-                    });
-                        
-              }).catch(function(error) {
-                return{
-                  Code : 200,
-                  Status : 'Error, try again later'
-                }
-              });
-            }
-          });
-    
-      } 
+        return query.limit(1).get().then(querySnapshot => 
+        {
+          if(!querySnapshot.empty){
+            let doc_id = querySnapshot.docs[0].id;
+            return admin.firestore().collection('/users').doc(doc_id).update({
+              'location' : location,
+              'timestamp' : timestamp
+            }).then(function() {
+              console.log('Success');
+              return {
+                'Code' : 100,
+                'Status' : 'Success'
+              }  
+            }).catch(function(error) {
+              console.log(error);
+              return{
+                'Code' : 200,
+                'Status' : 'Error, try again later'
+              }
+            });
+          }
+        });
+      }else{
+        return{
+          'Code': 202,
+          'Status': 'Incorrect lat or lon'
+        }
+      }
+    }else{
+      console.log('Unauth user');
+      return{
+        'Code': 201,
+        'Status': 'Incorrect parameters'
+      }  
     }
+  }else{
+    return{
+      'Code': 201,
+      'Status': 'Incorrect parameters'
+    }  
   }
-
 });
 
 //TODO: get user id and set as reference
 /*
 Input parameters:
-  - NOTHING 
+  - context.auth.token : firebase.auth.DecodedIdToken 
 Output parameters:
   - Status : string
   - Code : int
 */
 exports.unSetLocation = functions.https.onCall((data,context) => {
-    if(!context.auth){
-      return{ 
-        Code : 201,
-        Status : 'Incorrect parameters'
-      }               
-    }else{
-      let time = Date.now();
-      const mail = context.auth.token.email || null;
 
-      let query = admin.firestore().collection('/users').where('email','==', mail);
-      query.limit(1).get().then(querySnapshot => 
-        {
-          if(!querySnapshot.empty){
-            let doc_id = querySnapshot.docs[0].id;
-            return admin.firestore().collection('/users').doc(doc_id).update({
-              location : NULL,
-              timestamp : time
-            }).then(function() {
-              return{ 
-                Code : 100,
-                Status : 'Success'
-              }               
-            }).catch(function(error) {
-              return{
-                Code : 200,
-                Status : 'Error, try again later'
-              }
-            });
+  if(context.auth){
+    let timestamp = admin.firestore.FieldValue.serverTimestamp();
+    let mail = context.auth.token.email;
+
+    let query = admin.firestore().collection('/users').where('email','==', mail);
+    return query.limit(1).get().then(querySnapshot => 
+    {
+      if(!querySnapshot.empty)
+      {
+        let doc_id = querySnapshot.docs[0].id;
+        let location = querySnapshot.docs[0].get('location');
+
+        return admin.firestore().collection('/users').doc(doc_id).update({
+          'location' : admin.firestore.FieldValue.delete(),
+          'timestamp' : timestamp
+        }).then(function() {
+          let query = admin.firestore().collection('/locations').where('location','==', location);
+          return query.limit(1).get().then(querySnapshot => 
+          {
+            if(querySnapshot.empty){
+              return admin.firestore().collection('/locations').add({
+                'availability': 1,
+                'location' : location,
+                'timestamp': timestamp
+              }).then(function(){
+                return { 
+                  'Code' : 100,
+                  'Status' : 'Success'
+                }
+              }).catch(function(error){
+                return { 
+                  'Code' : 200,
+                  'Status' : 'Error, try again later'
+                }
+              })
+            }else{
+              let doc_id = querySnapshot.docs[0].id;
+              return  admin.firestore().collection('/locations').doc(doc_id).update({
+                'availability' : 1,
+                'location' : location,
+                'timestamp' : timestamp
+              }).then(function() {
+                return {
+                  'Code' : 100,
+                  'Status' : 'Success'
+                }
+              }).catch(function(error) {
+                console.error(error);
+                return {
+                  'Code' : 200,
+                  'Status' : 'Error, try again later'
+                }
+              });
+            }
+          });
+        }).catch(function(error) {
+          console.log(error);
+          return{
+            'Code' : 200,
+            'Status' : 'Error, try again later'
           }
         });
-  
-    } 
+      }
+    }).catch(function(error) {
+      console.log(error);
+      return{
+        Code : 200,
+        Status : 'Error, try again later'
+      }
+    });
+
+  }else{
+    console.log('Unauth user');
+    return {
+      'Code' : 201,
+      'Status' : 'Incorrect parameters'
+    }
+  }
 });
+
 //TODO: get user id and set as reference
 /*
 Input parameters:
@@ -298,9 +326,7 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
     if(lat != NaN && lon != NaN)
     {
       let geo_point = new admin.firestore.GeoPoint(lat,lon);
-      // TODO: fix timestamp
-      let hrtime = process.hrtime(); 
-      let timestamp = new admin.firestore.Timestamp(hrtime[0],hrtime[1]);
+      let timestamp = admin.firestore.FieldValue.serverTimestamp();
       let query = admin.firestore().collection('/locations').where('location','==', geo_point);
 
       query.limit(1).get().then(querySnapshot => 
