@@ -438,7 +438,8 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
           opennow: true,
           type: 'parking'
         }).asPromise().then((response) => {
-          var mapsResponse = response.json;
+          return response.json;
+          /* 
           return queryOverpass(`
             [out:json][timeout:25];
             node(413536);
@@ -446,6 +447,7 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
           `)
           .then(console.log)
           .catch(console.error)
+          */
         })
         .catch(function(error) {
           console.error(error);
@@ -454,8 +456,6 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
             'Status' : 'Error, try again later'
           }
         });
-
-
       }else{
         console.log('Parameters not numbers');
         return {
