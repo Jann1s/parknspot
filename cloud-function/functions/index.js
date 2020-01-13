@@ -397,23 +397,62 @@ exports.setAvailability = functions.https.onRequest(async (req,res) => {
   }
 });
 
-/**
- * Enter search radius and cordinates
- * Returns list of parking objects in json
- */
-//https://us-central1-parknspot-262413.cloudfunctions.net/getParkingLocations?rad=(search radius goes here)l&at=(latitude goes here)&lon=(longitude goes here)
-exports.getParkingLocations = functions.https.onRequest(async (req,res) => {
-    var radius = parseFloat(req.query.rad);
-    var lat = parseFloat(req.query.lat); 
-    var lon = parseFloat(req.query.lon);
-    googleMapsClient.placesNearby({
-        language: 'en',
-        location: [lat,lon],
-        radius: radius,
-        opennow: true,
-        type: 'parking'
-      }).asPromise().then((response) => {
-        console.log(response.json)
-      })
-      .catch(err => console.log(err));
+//TODO: get user id and set as reference
+/*
+Input parameters:
+  - radius : int
+  - lat : float
+  - lon : float
+Output parameters:
+  - Status : string
+  - Code : int
+*/
+exports.getParkingLocations = functions.https.onCall((data,context) => {
+  var rad = data.rad;
+  var lat = data.lat; 
+  var lon = data.lon;
+
+  if(context.auth){
+    if(rad && lat && lon){
+      var radius = parseFloat(rad);
+      var latitude = parseFloat(lat); 
+      var longitude = parseFloat(lon);
+      if(radius != NaN && latitude != NaN && longitude != NaN){
+        return googleMapsClient.placesNearby({
+          language: 'en',
+          location: [latitude,longitude],
+          radius: radius,
+          opennow: true,
+          type: 'parking'
+        }).asPromise().then((response) => {
+          return response.json;
+        })
+        .catch(function(error) {
+          console.error(error);
+          return {
+            'Code' : 200,
+            'Status' : 'Error, try again later'
+          }
+        });
+      }else{
+        console.log('Parameters not numbers');
+        return {
+          'Code' : 201,
+          'Status' : 'Incorrect parameters'
+        }
+      }
+    }else{
+      console.log('Missing parameters');
+      return {
+        'Code' : 201,
+        'Status' : 'Incorrect parameters'
+      }
+    }
+  }else{
+    console.log('Unauth user');
+    return {
+      'Code' : 201,
+      'Status' : 'Incorrect parameters'
+    }
+  }
 });
