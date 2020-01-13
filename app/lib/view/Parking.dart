@@ -4,7 +4,6 @@ import 'package:parknspot/controller/ParkingController.dart';
 import 'package:parknspot/APIBackend.dart';
 
 class Parking extends StatefulWidget {
-
   State<StatefulWidget> createState() {
     return ParkingState();
   }
@@ -23,26 +22,23 @@ class ParkingState extends State<Parking> {
   void _checkLocationSet() async {
     bool tmpLocSet = await APIBackend().isUserLocationSet();
     setState(() {
-      _isLocationSet = tmpLocSet; 
+      _isLocationSet = tmpLocSet;
     });
   }
 
-  Widget _buildLocationWidget(){
-    if(!_isLocationSet)
-    {
+  Widget _buildLocationWidget() {
+    if (!_isLocationSet) {
       return RaisedButton(
         color: ThemeGlobals.primaryButtonColor,
         shape: RoundedRectangleBorder(
           borderRadius: ThemeGlobals.buttonBorderRadius,
         ),
         child: Text('Set location',
-          style: TextStyle(
-              fontSize: 20.0,
-              color: Colors.white,
-              fontWeight: ThemeGlobals.mediumWeight,
-              fontFamily: 'Montserrat'
-            )
-          ),
+            style: TextStyle(
+                fontSize: 20.0,
+                color: Colors.white,
+                fontWeight: ThemeGlobals.mediumWeight,
+                fontFamily: 'Montserrat')),
         onPressed: () async {
           _parkingController.setLocation();
           setState(() {
@@ -50,8 +46,9 @@ class ParkingState extends State<Parking> {
           });
         },
       );
-    }else{
-      return Row(
+    } else {
+      return ButtonBar(
+        alignment: MainAxisAlignment.center,
         children: <Widget>[
           RaisedButton(
             color: ThemeGlobals.primaryButtonColor,
@@ -59,13 +56,11 @@ class ParkingState extends State<Parking> {
               borderRadius: ThemeGlobals.buttonBorderRadius,
             ),
             child: Text('Unset location',
-              style: TextStyle(
-                  fontSize: 20.0,
-                  color: Colors.white,
-                  fontWeight: ThemeGlobals.mediumWeight,
-                  fontFamily: 'Montserrat'
-                )
-              ),
+                style: TextStyle(
+                    fontSize: 20.0,
+                    color: Colors.white,
+                    fontWeight: ThemeGlobals.mediumWeight,
+                    fontFamily: 'Montserrat')),
             onPressed: () async {
               _parkingController.unsetLocation();
               setState(() {
@@ -79,17 +74,13 @@ class ParkingState extends State<Parking> {
               borderRadius: ThemeGlobals.buttonBorderRadius,
             ),
             child: Text('Find my car',
-              style: TextStyle(
-                  fontSize: 20.0,
-                  color: Colors.white,
-                  fontWeight: ThemeGlobals.mediumWeight,
-                  fontFamily: 'Montserrat'
-                )
-              ),
+                style: TextStyle(
+                    fontSize: 20.0,
+                    color: Colors.white,
+                    fontWeight: ThemeGlobals.mediumWeight,
+                    fontFamily: 'Montserrat')),
             onPressed: () async {
-              if(_isLocationSet){
-
-              }
+              if (_isLocationSet) {}
             },
           )
         ],
@@ -98,80 +89,55 @@ class ParkingState extends State<Parking> {
   }
 
   @override
-  Widget build(BuildContext context){
-    return Container(
-        alignment: Alignment.center,
-        margin: EdgeInsets.all(30),
-        child: Center(
-          child: Column(
-            children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Container(
-                    margin: EdgeInsets.fromLTRB(0, 0, 0, 15),
-                    child: Center(
-                      child: Text(
-                        'Set your location',
-                        style: TextStyle(
-                            fontSize: 20,
-                            color: ThemeGlobals.tertiaryTextColor,
-                            fontWeight: ThemeGlobals.heading,
-                            fontFamily: 'Montserrat'),
-                      ),
-                    ),
-                  ),
-                  Container(
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Center(
+      child: Container(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          children: <Widget>[
+            Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Container(
+                  margin: EdgeInsets.fromLTRB(0, 0, 0, 15),
+                  child: Center(
                     child: Text(
-                        "Set your location and forget about where you parked! Later, you can find your vehicle in the map.",
-                        style: TextStyle(
-                            fontSize: 18,
-                            color: ThemeGlobals.tertiaryTextColor,
-                            fontWeight: ThemeGlobals.description,
-                            fontFamily: 'Montserrat')),
-                    margin: EdgeInsets.fromLTRB(0, 0, 0, 15),
-                  ),
-                  _buildLocationWidget()
-                  /*
-                  SizedBox(
-                    width: double.infinity,
-                    height: 40,
-                    child: RaisedButton(
-                      color: ThemeGlobals.primaryButtonColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: ThemeGlobals.buttonBorderRadius,
-                      ),
-                      child: Text('Set location',
-                        style: TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.white,
-                            fontWeight: ThemeGlobals.mediumWeight,
-                            fontFamily: 'Montserrat'
-                          )
-                        ),
-                      onPressed: () async {
-                        
-
-                        setState(() {
-                          _isLocationSet = true;
-                        });
-                      },
+                      'Set your location',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: ThemeGlobals.tertiaryTextColor,
+                          fontWeight: ThemeGlobals.heading,
+                          fontFamily: 'Montserrat'),
                     ),
                   ),
-                  */
-                ],
-              ),
-              Container(
-                margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
-                child: Divider(
-                  color: ThemeGlobals.primaryButtonColor,
-                  thickness: 2,
-                  indent: 5,
-                  endIndent: 5,
-                  height: 10,
                 ),
+                Container(
+                  child: Text(
+                      "Set your location and forget about where you parked! Later, you can find your vehicle in the map.",
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: ThemeGlobals.tertiaryTextColor,
+                          fontWeight: ThemeGlobals.description,
+                          fontFamily: 'Montserrat')),
+                  margin: EdgeInsets.fromLTRB(0, 0, 0, 15),
+                ),
+                _buildLocationWidget()
+              ],
+            ),
+            Container(
+              margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
+              child: Divider(
+                color: ThemeGlobals.primaryButtonColor,
+                thickness: 2,
+                indent: 5,
+                endIndent: 5,
+                height: 10,
               ),
-              Expanded(
+            ),
+            Expanded(
+              child: SingleChildScrollView(
                 child: Column(
                   children: <Widget>[
                     Container(
@@ -219,98 +185,96 @@ class ParkingState extends State<Parking> {
                                 fontWeight: ThemeGlobals.mediumWeight,
                                 fontFamily: 'Montserrat')),
                         onPressed: () async {
-                          if(_availability != null)
-                          {
-                            bool operationStatus = await _parkingController.setAvailability(_availability.index);
-                            if(operationStatus){
+                          if (_availability != null) {
+                            bool operationStatus = await _parkingController
+                                .setAvailability(_availability.index);
+                            if (operationStatus) {
                               // Display success message
                               showDialog(
-                                context: context,
-                                builder: (BuildContext context){
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(5.0))
-                                    ),
-                                    content: Container(
-                                      height: 75,
-                                      width: 150,
-                                      child: Center(
-                                        child: Column(
-                                          children: <Widget>[
-                                            Text('Success!'),
-                                            RaisedButton(
-                                              child: Text('OK'),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            )
-                                          ],
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(5.0))),
+                                      content: Container(
+                                        height: 75,
+                                        width: 150,
+                                        child: Center(
+                                          child: Column(
+                                            children: <Widget>[
+                                              Text('Success!'),
+                                              RaisedButton(
+                                                child: Text('OK'),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              )
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                }
-                              );
-                            }else{
+                                    );
+                                  });
+                            } else {
                               // Display error message
                               showDialog(
-                                context: context,
-                                builder: (BuildContext context){
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(5.0))
-                                    ),
-                                    content: Container(
-                                      height: 75,
-                                      width: 150,
-                                      child: Center(
-                                        child: Column(
-                                          children: <Widget>[
-                                            Text('Ops! Something went wrong...'),
-                                            RaisedButton(
-                                              child: Text('OK'),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            )
-                                          ],
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(5.0))),
+                                      content: Container(
+                                        height: 75,
+                                        width: 150,
+                                        child: Center(
+                                          child: Column(
+                                            children: <Widget>[
+                                              Text(
+                                                  'Ops! Something went wrong...'),
+                                              RaisedButton(
+                                                child: Text('OK'),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              )
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                }
-                              );
+                                    );
+                                  });
                             }
-                          }else{
+                          } else {
                             // Display message stating to select availability
                             print('_availability not set');
                             showDialog(
-                              context: context,
-                              builder: (BuildContext context){
-                                return AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(5.0))
-                                  ),
-                                  content: Container(
-                                    height: 75,
-                                    width: 150,
-                                    child: Center(
-                                      child: Column(
-                                        children: <Widget>[
-                                          Text('Please set an availability'),
-                                          RaisedButton(
-                                            child: Text('OK'),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          )
-                                        ],
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5.0))),
+                                    content: Container(
+                                      height: 75,
+                                      width: 150,
+                                      child: Center(
+                                        child: Column(
+                                          children: <Widget>[
+                                            Text('Please set an availability'),
+                                            RaisedButton(
+                                              child: Text('OK'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            )
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              }
-                            );
+                                  );
+                                });
                           }
                         },
                       ),
@@ -318,9 +282,11 @@ class ParkingState extends State<Parking> {
                   ],
                 ),
               ),
-            ],
-          ),
-        ));
+            ),
+          ],
+        ),
+      ),
+    ));
   }
 
   Widget buildAvailabilityButton(String text, EAvailability type) {
