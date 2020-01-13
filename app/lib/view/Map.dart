@@ -1,18 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import 'package:geolocator/geolocator.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/controller/MapController.dart';
 import 'package:parknspot/credentials.dart';
 import 'package:parknspot/main.dart';
 import 'package:parknspot/Models/Places.dart';
+
 
 class MyMap extends StatefulWidget {
   State<StatefulWidget> createState() {
@@ -23,7 +25,7 @@ class MyMap extends StatefulWidget {
 class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-  Set<Marker> _markers = {};
+  final Map<String, Marker> _markers = {};
   List<Placemark> placemarks;
   Position position;
   String searchAddress;
@@ -31,32 +33,17 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   TextEditingController _searchAdress = new TextEditingController();
   MapController _mapController;
   List<Places> _suggestedList = [];
-
-  Completer<GoogleMapController> _googleMapsController = Completer();
-
-  MyMapState()
-  {
-    _mapController = new MapController(this);
-    // TODO: change radius
-    _checkSpots(1,_emmenPosition.target.latitude, _emmenPosition.target.longitude);
-  }
-
-  void _checkSpots(int radius, double lat, double lon) async {
-    _markers.clear();
-    Set<Marker> tmpMarkers = await _mapController.getParkingLocations(radius, lat, lon);
-    setState(() {
-      _markers = tmpMarkers;
-    });
-  }
+  List<Marker> _parkingMarkers = <Marker>[];
+  Completer<GoogleMapController> _controller = Completer();
 
   static final CameraPosition _emmenPosition = CameraPosition(
     target: LatLng(52.78586767371929, 6.8975849999999355),
     zoom: 14,
   );
 
-  //Get places suggestions from Places API
+//Get places suggestions from Places API
   Future<Void> _getLocationResults(String input) async {
-    final GoogleMapController placesController = await _googleMapsController.future;
+    final GoogleMapController placesController = await _controller.future;
     List<Places> _displayResults = [];
     if ((input.isEmpty)) {
       Main.showToast('Enter search text');
@@ -78,8 +65,51 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
       });
     }
   }
+    Future<bool> _getParkingLocations(int radius) async{
+    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    
+    final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
+      functionName: 'getParkingLocations'
+    );
+    try {
+      HttpsCallableResult resp = await callable.call(<String,dynamic>{
+        'radius' : radius,
+        'lat': position.latitude,
+        'lon': position.longitude
+      });
 
-  //Get address from location
+      if(resp.data['Code'] == 100){
+        //return true;
+       
+       setState(() {
+           
+            print(resp.data['Places']['results']);
+           
+            Map<String, dynamic> map = json.decode(resp.data['Places']);
+       
+             
+       
+        
+          });
+       
+       
+      }else{
+        print('code != 100');
+        //return ;
+      }
+    }on CloudFunctionsException catch (e) {
+      print('CloudFunctionsException');
+      print(e);
+      //return false;
+    }catch(e){
+      print('Generic exception');
+      print(e);
+      //return false;
+    }
+  }
+
+
+//Get address from location
   Future<String> _getAddress(position) async {
     placemarks = await Geolocator()
         .placemarkFromCoordinates(position.latitude, position.longitude);
@@ -92,7 +122,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
 
   //Zoom to current location
   Future<void> _moveToPosition(position) async {
-    final GoogleMapController mapController = await _googleMapsController.future;
+    final GoogleMapController mapController = await _controller.future;
     if (mapController == null) return;
     print('moving to position ${position.latitude}, ${position.longitude}');
     mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
@@ -101,7 +131,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
     )));
   }
 
-  //Get current Location
+//Get current Location
   Future<void> _getLocation() async {
     var currentLocation = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
@@ -109,7 +139,8 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
         'got current location as ${currentLocation.latitude}, ${currentLocation.longitude}');
     await _getAddress(currentLocation);
     await _moveToPosition(currentLocation);
-    final bitmapIcon =  BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose);
+    final bitmapIcon =
+        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose);
 
     setState(() {
       _markers.clear();
@@ -118,7 +149,8 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
         markerId: MarkerId("curr_loc"),
         position: LatLng(currentLocation.latitude, currentLocation.longitude),
         infoWindow: InfoWindow(
-          title: '${placemarks[0].thoroughfare}, ${placemarks[0].postalCode}'),
+            title:
+                '${placemarks[0].thoroughfare}, ${placemarks[0].postalCode}'),
         icon: bitmapIcon,
       );
       _markers["Current Location"] = marker;
@@ -137,7 +169,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
             markers: _markers.values.toSet(),
             onMapCreated: (GoogleMapController controller) {
               setState(() {
-                _googleMapsController.complete(controller);
+                _controller.complete(controller);
               });
             },
           ),
@@ -175,18 +207,36 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                   return placesCardBuilder(context, index);
                 }),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
+        Align(alignment: Alignment.bottomCenter,
+         child: FloatingActionButton(
         onPressed: _getLocation,
         tooltip: 'Get Location',
         child: Icon(Icons.my_location),
+        ),
+       
+        ),
+        Align(alignment: Alignment.bottomRight,
+         child: FloatingActionButton.extended(
+            onPressed: (){_getParkingLocations(3000);},
+            label: Text('Places Nearby'),
+            icon: Icon(Icons.place),
+            ),
+       
+        ),
+        ],
+      
+        
+        
+       
+ 
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+
+      
+      
     );
   }
 
-  //Suggestions card builder
+//Suggestions card builder
   Widget placesCardBuilder(BuildContext context, int index) {
     return Card(
       elevation: 1.0,
@@ -202,17 +252,19 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
           ],
         ),
         onTap: () async {
-          final GoogleMapController placesController = await _googleMapsController.future;
-          Geolocator().placemarkFromAddress(_suggestedList[index].placeName).then((result) {
-            placesController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-              target: LatLng(result[0].position.latitude, result[0].position.longitude),
+          final GoogleMapController placesController = await _controller.future;
+          Geolocator()
+              .placemarkFromAddress(_suggestedList[index].placeName)
+              .then((result) {
+            placesController
+                .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+              target: LatLng(
+                  result[0].position.latitude, result[0].position.longitude),
               zoom: 10.0,
             )));
             setState(() {
               _suggestedList = [];
             });
-            // TODO: change radius
-            _checkSpots(1, result[0].position.latitude, result[0].position.longitude);
           });
         },
       ),

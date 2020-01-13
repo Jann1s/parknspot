@@ -424,21 +424,26 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
   var lon = data.lon;
 
   if(context.auth){
-    if(rad && lat && lon)
+    if(radius && lat && lon)
     {
-      radius = parseFloat(rad);
+      radius = parseFloat(radius);
       lat = parseFloat(lat); 
       lon = parseFloat(lon);
-      if(radius != NaN && latitude != NaN && longitude != NaN)
+      if(radius != NaN && lat != NaN && lon != NaN)
       {
         return googleMapsClient.placesNearby({
           language: 'en',
-          location: [latitude,longitude],
+          location: [lat,lon],
           radius: radius,
           opennow: true,
           type: 'parking'
         }).asPromise().then((response) => {
-          return response.json;
+          console.log(response.json)
+          return {
+            'Code' : 100,
+            'Status': 'Happy noises',
+            'Places': response.json
+          }
           /* 
           return queryOverpass(`
             [out:json][timeout:25];
