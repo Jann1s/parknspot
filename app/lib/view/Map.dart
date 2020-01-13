@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:parknspot/ThemeGlobals.dart';
+import 'package:parknspot/controller/MapController.dart';
 import 'package:parknspot/credentials.dart';
 import 'package:parknspot/main.dart';
 import 'package:parknspot/Models/Places.dart';
@@ -22,25 +23,40 @@ class MyMap extends StatefulWidget {
 class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-  final Map<String, Marker> _markers = {};
+  Set<Marker> _markers = {};
   List<Placemark> placemarks;
   Position position;
   String searchAddress;
   List<Places> _placesList;
   TextEditingController _searchAdress = new TextEditingController();
-
+  MapController _mapController;
   List<Places> _suggestedList = [];
 
-  Completer<GoogleMapController> _controller = Completer();
+  Completer<GoogleMapController> _googleMapsController = Completer();
+
+  MyMapState()
+  {
+    _mapController = new MapController(this);
+    // TODO: change radius
+    _checkSpots(1,_emmenPosition.target.latitude, _emmenPosition.target.longitude);
+  }
+
+  void _checkSpots(int radius, double lat, double lon) async {
+    _markers.clear();
+    Set<Marker> tmpMarkers = await _mapController.getParkingLocations(radius, lat, lon);
+    setState(() {
+      _markers = tmpMarkers;
+    });
+  }
 
   static final CameraPosition _emmenPosition = CameraPosition(
     target: LatLng(52.78586767371929, 6.8975849999999355),
     zoom: 14,
   );
 
-//Get places suggestions from Places API
+  //Get places suggestions from Places API
   Future<Void> _getLocationResults(String input) async {
-    final GoogleMapController placesController = await _controller.future;
+    final GoogleMapController placesController = await _googleMapsController.future;
     List<Places> _displayResults = [];
     if ((input.isEmpty)) {
       Main.showToast('Enter search text');
@@ -63,7 +79,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
     }
   }
 
-//Get address from location
+  //Get address from location
   Future<String> _getAddress(position) async {
     placemarks = await Geolocator()
         .placemarkFromCoordinates(position.latitude, position.longitude);
@@ -76,7 +92,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
 
   //Zoom to current location
   Future<void> _moveToPosition(position) async {
-    final GoogleMapController mapController = await _controller.future;
+    final GoogleMapController mapController = await _googleMapsController.future;
     if (mapController == null) return;
     print('moving to position ${position.latitude}, ${position.longitude}');
     mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
@@ -85,7 +101,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
     )));
   }
 
-//Get current Location
+  //Get current Location
   Future<void> _getLocation() async {
     var currentLocation = await Geolocator()
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
@@ -93,8 +109,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
         'got current location as ${currentLocation.latitude}, ${currentLocation.longitude}');
     await _getAddress(currentLocation);
     await _moveToPosition(currentLocation);
-    final bitmapIcon =
-        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose);
+    final bitmapIcon =  BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose);
 
     setState(() {
       _markers.clear();
@@ -103,8 +118,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
         markerId: MarkerId("curr_loc"),
         position: LatLng(currentLocation.latitude, currentLocation.longitude),
         infoWindow: InfoWindow(
-            title:
-                '${placemarks[0].thoroughfare}, ${placemarks[0].postalCode}'),
+          title: '${placemarks[0].thoroughfare}, ${placemarks[0].postalCode}'),
         icon: bitmapIcon,
       );
       _markers["Current Location"] = marker;
@@ -123,7 +137,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
             markers: _markers.values.toSet(),
             onMapCreated: (GoogleMapController controller) {
               setState(() {
-                _controller.complete(controller);
+                _googleMapsController.complete(controller);
               });
             },
           ),
@@ -172,7 +186,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
     );
   }
 
-//Suggestions card builder
+  //Suggestions card builder
   Widget placesCardBuilder(BuildContext context, int index) {
     return Card(
       elevation: 1.0,
@@ -188,19 +202,17 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
           ],
         ),
         onTap: () async {
-          final GoogleMapController placesController = await _controller.future;
-          Geolocator()
-              .placemarkFromAddress(_suggestedList[index].placeName)
-              .then((result) {
-            placesController
-                .animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-              target: LatLng(
-                  result[0].position.latitude, result[0].position.longitude),
+          final GoogleMapController placesController = await _googleMapsController.future;
+          Geolocator().placemarkFromAddress(_suggestedList[index].placeName).then((result) {
+            placesController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+              target: LatLng(result[0].position.latitude, result[0].position.longitude),
               zoom: 10.0,
             )));
             setState(() {
               _suggestedList = [];
             });
+            // TODO: change radius
+            _checkSpots(1, result[0].position.latitude, result[0].position.longitude);
           });
         },
       ),

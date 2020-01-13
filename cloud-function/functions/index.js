@@ -321,7 +321,7 @@ exports.setAvailability = functions.https.onCall((data, context) => {
   let availability = data.availability;
   let lat = data.lat;
   let lon = data.lon;
-console.log(availability + ',[' + lat + ',' + lon + ']');
+  
   if(Number.isInteger(availability) && lat && lon)
   {
     if(context.auth){
@@ -419,18 +419,18 @@ Output parameters:
   - Code : int
 */
 exports.getParkingLocations = functions.https.onCall((data,context) => {
-  var rad = data.radius;
-  var lat = data.latitude; 
-  var lon = data.longitude;
+  var radius = data.radius;
+  var lat = data.lat; 
+  var lon = data.lon;
 
-
-  
   if(context.auth){
-    if(rad && lat && lon){
-      var radius = parseFloat(rad);
-      var latitude = parseFloat(lat); 
-      var longitude = parseFloat(lon);
-      if(radius != NaN && latitude != NaN && longitude != NaN){
+    if(rad && lat && lon)
+    {
+      radius = parseFloat(rad);
+      lat = parseFloat(lat); 
+      lon = parseFloat(lon);
+      if(radius != NaN && latitude != NaN && longitude != NaN)
+      {
         return googleMapsClient.placesNearby({
           language: 'en',
           location: [latitude,longitude],
