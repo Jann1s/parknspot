@@ -15,14 +15,14 @@ class ParkingController {
     final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
       functionName: 'setAvailability'
     );
-
+    
     try{
       HttpsCallableResult resp = await callable.call(<String, dynamic>{
         'availability' : availability,
         'lat' : position.latitude,
         'lon' : position.longitude
       });
-
+      
       if(resp.data['Code'] == 100){
         return true;
       }else{
