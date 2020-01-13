@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:parknspot/controller/LoginController.dart';
 import 'package:parknspot/controller/ProfileController.dart';
 import 'package:parknspot/main.dart';
-import 'package:parknspot/view/Login.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 
 class Profile extends StatefulWidget {
