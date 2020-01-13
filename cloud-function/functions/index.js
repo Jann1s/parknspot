@@ -4,6 +4,7 @@ const googleMapsClient = require('@google/maps').createClient({
     key: 'AIzaSyAcEYs5nXBC0DlNxZzneG_bLm_W4ZDwf4g',
     Promise: Promise
   });
+const queryOverpass = require('@derhuerst/query-overpass');
 
 admin.initializeApp();
 admin.firestore().settings( { timestampsInSnapshots: true });
@@ -408,10 +409,12 @@ Output parameters:
   - Code : int
 */
 exports.getParkingLocations = functions.https.onCall((data,context) => {
-  var rad = data.rad;
-  var lat = data.lat; 
-  var lon = data.lon;
+  var rad = data.radius;
+  var lat = data.latitude; 
+  var lon = data.longitude;
 
+
+  
   if(context.auth){
     if(rad && lat && lon){
       var radius = parseFloat(rad);
@@ -425,7 +428,14 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
           opennow: true,
           type: 'parking'
         }).asPromise().then((response) => {
-          return response.json;
+          var mapsResponse = response.json;
+          return queryOverpass(`
+            [out:json][timeout:25];
+            node(413536);
+            out body;
+          `)
+          .then(console.log)
+          .catch(console.error)
         })
         .catch(function(error) {
           console.error(error);
@@ -434,6 +444,8 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
             'Status' : 'Error, try again later'
           }
         });
+
+
       }else{
         console.log('Parameters not numbers');
         return {
