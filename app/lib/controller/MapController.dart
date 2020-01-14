@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:parknspot/view/Map.dart';
@@ -11,7 +13,7 @@ class MapController {
     _myMapState = myMapState;
   }
 
-  Future<Set<Marker>> getParkingLocations(int radius, double lat, double lon) async{
+  Future<List<Marker>> getParkingLocations(int radius) async{
     Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     
     final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
@@ -20,12 +22,22 @@ class MapController {
     try {
       HttpsCallableResult resp = await callable.call(<String,dynamic>{
         'radius' : radius,
-        'lat': position.latitude,
-        'lon': position.longitude
+        'latitude': position.latitude,
+        'longitude': position.longitude
       });
 
       if(resp.data['Code'] == 100){
-        //return true;
+        //print(resp.data['Places']);
+    
+        return resp.data['Places']['results'].map<Marker>((result) => new Marker(
+          markerId: MarkerId(result['id'].toString()),
+          position: LatLng(result['geometry']['location']['lat'], result['geometry']['location']['lng']),
+          infoWindow: InfoWindow(
+              title:
+                  result['name']),
+        )).toList();
+        
+        //return resp.data['Places']['results'].map<String>((result) => result['name'].toString()).toList();
       }else{
         print('code != 100');
         //return false;

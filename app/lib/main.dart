@@ -30,7 +30,7 @@ class Main extends State<MyApp> {
 
   LoginController _loginController;
   RegisterController _registerController;
-  MapController _mapController = new MapController();
+
 
   Main() {
     _registerController = new RegisterController(this);
