@@ -1,5 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const bcrypt = require('./custom-bcrypt');
 const googleMapsClient = require('@google/maps').createClient({
     key: 'AIzaSyAcEYs5nXBC0DlNxZzneG_bLm_W4ZDwf4g',
     Promise: Promise
@@ -38,11 +39,10 @@ exports.createBusinessUser = functions.https.onRequest(async (req, res) => {
   res.set('Content-Type', 'application/json');
 
   console.log(req.body.data);
-
-  //Generate random string as apikey https://gist.github.com/6174/6062387
-  let apiKey = Math.random().toString(36).substring(2, 15)+Math.random().toString(36).substring(2, 15)+Math.random().toString(36).substring(2, 15)+Math.random().toString(36).substring(2, 15);
+  
   let timestamp = admin.firestore.FieldValue.serverTimestamp();
   let business = req.body.data.name;
+  let apiKey = bcrypt.hash(business.concat(timestamp.toString()), {salt: Math.random().toString(36).substring(2, 15), rounds: 10});
   let lat = req.body.data.lat;
   let lon = req.body.data.lon;
 
@@ -58,19 +58,51 @@ exports.createBusinessUser = functions.https.onRequest(async (req, res) => {
       let geo_point = new admin.firestore.GeoPoint(lat,lon);
 
       //Create business User
-      admin.firestore().collection('business').add(
+      admin.firestore().collection('/business').add(
       {
         'name': business,
         'location': geo_point,
         'API': apiKey,
         'timestamp': timestamp       
       }).then(function() {
-        res.send({
-          data: {
-            'Code': 100,
-            'Status': 'Success'
+
+        let queryLocation = admin.firestore().collection('/locations').where('location','==', geo_point);
+        queryLocation.limit(1).get().then(querySnapshot => 
+        {
+          if(querySnapshot.empty)
+          {
+            //Create location
+            admin.firestore().collection('/locations').add(
+              {
+                'availability': 1,
+                'location': geo_point,
+                'timestamp': timestamp       
+              }
+            ).then(function(){
+              res.send ({
+                'Code' : 100,
+                'Status' : 'Success - Business User and Location created',
+                'API-KEY' : apiKey
+              })
+            }).catch(function(error){
+              res.send({
+                data: {
+                  'Code' : 200,
+                  'Status' : 'Error - Business User created but failed to create new Location',
+                  'API-KEY' : apiKey
+                }
+              });
+              console.log(error);
+            })
           }
-        });
+          else{
+            res.send ({
+              'Code' : 100,
+              'Status' : 'Success - Business User created',
+              'API-KEY' : apiKey
+            })
+          }
+        })
       }).catch(function(error) {
         res.send({
           data: {
@@ -116,79 +148,69 @@ exports.updateBusinessUserAvailability = functions.https.onRequest(async (req, r
     //Check if user with the requested API exist
     if(!querySnapshot.empty)
     {
-      let docIdBusiness = querySnapshot.docs[0].id;
-      //update timestamp when business user last time updated location
-      admin.firestore().collection('business').doc(docIdBusiness).update(
+      let geo_point = querySnapshot.docs[0].get('location');
+      let queryLocation = admin.firestore().collection('/locations').where('location','==', geo_point);
+      queryLocation.limit(1).get().then(querySnapshot =>
+      {
+        //Check if requested location exists
+        if(!querySnapshot.empty)
         {
-          timestamp: timestamp
-        }
-        //If editing business document was succesful - update location document
-      ).then(function(){
-        let geo_point = querySnapshot.docs[0].get('location');
-        let queryLocation = admin.firestore().collection('/locations').where('location','==', geo_point);
-        queryLocation.limit(1).get().then(querySnapshot =>
-        {
-          //Check if requested location exists
-          if(!querySnapshot.empty)
-          {
-            let docIdLocations = querySnapshot.docs[0].id;
-            //Update availability
-            admin.firestore().collection('locations').doc(docIdLocations).update(
-              {
-                availability: availability,
-                timestamp: timestamp
-              }
-              //If editing location document was succesful
-            ).then(function(){
+          let docIdLocations = querySnapshot.docs[0].id;
+          //Update availability
+          admin.firestore().collection('locations').doc(docIdLocations).update(
+            {
+              availability: availability,
+              timestamp: timestamp
+            }
+          //If editing location document was succesful
+          ).then(function(){
               res.send({
                 data: {
                   'Code' : 100,
-                  'Status' : 'Success - Business Document and Availability updated'
+                  'Status' : 'Success - Location Availability updated'
                 }
               });
             }).catch(function(error) {
               res.send({
                 data: {
                   'Code' : 200,
-                  'Status' : 'Error, Availability was not updated'
+                  'Status' : 'Error - Availability was not updated'
                 }
               });
               console.log(error);
             });
             //If location does not exist yet
-          }else{
-            //Create new location
-            admin.firestore().collection('/locations').add({
-              'availability' : availability,
-              'location' : geo_point,
-              'timestamp' : timestamp
-            }).then(function() {
-              res.send({
-                data: {
-                  'Code': 100,
-                  'Status': 'Success - Business Document updated and new Location Document created'
-                }
-              });
-            }).catch(function(error) {
-              res.send({
-                data: {
-                  'Code' : 200,
-                  'Status' : 'Error, Business Document updated but Location Document was not created'
-                }
-              });
-              console.log(error);
+        }else{
+          //Create new location
+          admin.firestore().collection('/locations').add({
+            'availability' : availability,
+            'location' : geo_point,
+            'timestamp' : timestamp
+          }).then(function() {
+            res.send({
+              data: {
+                'Code': 100,
+                'Status': 'Success - Location Document created'
+              }
+            });
+          }).catch(function(error) {
+            res.send({
+              data: {
+                'Code' : 200,
+                'Status' : 'Error - Location Document was not created'
+              }
+            });
+            console.log(error);
             });
           }
-        });
-      }).catch(function(error) {
-        res.send({
-          data: {
-            'Code' : 200,
-            'Status' : 'Error, try again later'
-          }
-        });
-        console.log(error);
-      });     
+        });    
+    }else{
+      res.send({
+        data: {
+          'Code' : 200,
+          'Status' : 'Incorrect API-Key - User not found'
+        }
+      });
     } 
   });  
 });
@@ -210,15 +232,14 @@ exports.deleteBusinessUser = functions.https.onRequest((req, res) => {
         res.send({
           data: {
             'Code': 100,
-            'Status': 'Success'
+            'Status': 'Success - User deleted'
           }
         });
       }).catch(function(error){
         res.send({
           data: {
             'Code' : 200,
-            'Status' : 'Error, try again later'
-        
+            'Status' : 'Error - User was not deleted'
           }
         });
         console.log(error);
@@ -232,8 +253,7 @@ exports.deleteBusinessUser = functions.https.onRequest((req, res) => {
         }
       });
     }
-  })
-   
+  })  
 });
 
 /*
