@@ -30,6 +30,7 @@ dependencies:
   cloud_functions: ^0.4.1+6
   geolocator: ^5.1.5
   dio: ^3.0.8
+  trust_fall: ^1.0.4
  
 
 dev_dependencies:
