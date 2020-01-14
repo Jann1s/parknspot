@@ -183,7 +183,7 @@ class Main extends State<MyApp> {
     bool isRealDevice = await TrustFall.isRealDevice;
     bool isOnExternalStorage = await TrustFall.isOnExternalStorage;
 
-    if (isJailbroken || isOnExternalStorage) {
+    if (isJailbroken || isOnExternalStorage || !isRealDevice) {
       exit(0);
     }
   }
