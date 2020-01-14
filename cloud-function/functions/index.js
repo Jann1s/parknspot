@@ -53,7 +53,7 @@ exports.createBusinessUser = functions.https.onRequest(async (req, res) => {
     lon = parseFloat(lon);
 
     //Check if latitude and longitude are numbers
-    if(lat != NaN && lon != NaN)
+    if(lat != NaN && lon != NaN && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)
     {
       let geo_point = new admin.firestore.GeoPoint(lat,lon);
 
@@ -112,9 +112,7 @@ exports.createBusinessUser = functions.https.onRequest(async (req, res) => {
         });
         console.log(error);
       });       
-    }
-    else // Incorrect lat or lon
-    {
+    }else{
       res.send({
         data: {
           'Code': 202,
@@ -122,9 +120,7 @@ exports.createBusinessUser = functions.https.onRequest(async (req, res) => {
         }
       });
     } 
-  }
-  else //incorrect parameters
-  {
+  }else{
     res.send({
       data: {
         'Code' : 201,
@@ -143,76 +139,88 @@ exports.updateBusinessUserAvailability = functions.https.onRequest(async (req, r
   let timestamp = admin.firestore.FieldValue.serverTimestamp();
   let queryBusinessUser = admin.firestore().collection('/business').where('API','==', apiKey);  
   
-  queryBusinessUser.limit(1).get().then(querySnapshot =>
+  availability = parseInt(availability);
+
+  if(availability != NaN && availability <= 4 && availability >= 0)
   {
-    //Check if user with the requested API exist
-    if(!querySnapshot.empty)
-    {
-      let geo_point = querySnapshot.docs[0].get('location');
-      let queryLocation = admin.firestore().collection('/locations').where('location','==', geo_point);
-      queryLocation.limit(1).get().then(querySnapshot =>
+    queryBusinessUser.limit(1).get().then(querySnapshot =>
       {
-        //Check if requested location exists
+        //Check if user with the requested API exist
         if(!querySnapshot.empty)
         {
-          let docIdLocations = querySnapshot.docs[0].id;
-          //Update availability
-          admin.firestore().collection('locations').doc(docIdLocations).update(
+          let geo_point = querySnapshot.docs[0].get('location');
+          let queryLocation = admin.firestore().collection('/locations').where('location','==', geo_point);
+          queryLocation.limit(1).get().then(querySnapshot =>
+          {
+            //Check if requested location exists
+            if(!querySnapshot.empty)
             {
-              availability: availability,
-              timestamp: timestamp
-            }
-          //If editing location document was succesful
-          ).then(function(){
-              res.send({
-                data: {
-                  'Code' : 100,
-                  'Status' : 'Success - Location Availability updated'
+              let docIdLocations = querySnapshot.docs[0].id;
+              //Update availability
+              admin.firestore().collection('locations').doc(docIdLocations).update(
+                {
+                  availability: availability,
+                  timestamp: timestamp
                 }
-              });
-            }).catch(function(error) {
-              res.send({
-                data: {
-                  'Code' : 200,
-                  'Status' : 'Error - Availability was not updated'
-                }
-              });
-              console.log(error);
-            });
-            //If location does not exist yet
+              //If editing location document was succesful
+              ).then(function(){
+                  res.send({
+                    data: {
+                      'Code' : 100,
+                      'Status' : 'Success - Location Availability updated'
+                    }
+                  });
+                }).catch(function(error) {
+                  res.send({
+                    data: {
+                      'Code' : 200,
+                      'Status' : 'Error - Availability was not updated'
+                    }
+                  });
+                  console.log(error);
+                });
+                //If location does not exist yet
+            }else{
+              //Create new location
+              admin.firestore().collection('/locations').add({
+                'availability' : availability,
+                'location' : geo_point,
+                'timestamp' : timestamp
+              }).then(function() {
+                res.send({
+                  data: {
+                    'Code': 100,
+                    'Status': 'Success - Location Document created'
+                  }
+                });
+              }).catch(function(error) {
+                res.send({
+                  data: {
+                    'Code' : 200,
+                    'Status' : 'Error - Location Document was not created'
+                  }
+                });
+                console.log(error);
+                });
+              }
+            });    
         }else{
-          //Create new location
-          admin.firestore().collection('/locations').add({
-            'availability' : availability,
-            'location' : geo_point,
-            'timestamp' : timestamp
-          }).then(function() {
-            res.send({
-              data: {
-                'Code': 100,
-                'Status': 'Success - Location Document created'
-              }
-            });
-          }).catch(function(error) {
-            res.send({
-              data: {
-                'Code' : 200,
-                'Status' : 'Error - Location Document was not created'
-              }
-            });
-            console.log(error);
-            });
-          }
-        });    
-    }else{
-      res.send({
-        data: {
-          'Code' : 200,
-          'Status' : 'Incorrect API-Key - User not found'
-        }
-      });
-    } 
-  });  
+          res.send({
+            data: {
+              'Code' : 200,
+              'Status' : 'Incorrect API-Key - User not found'
+            }
+          });
+        } 
+      }); 
+  }else{
+    res.send({
+      data: {
+        'Code' : 200,
+        'Status' : 'Incorrect Parameter - The Availability value has to be a number between 0 and 4'
+      }
+    });
+  }   
 });
 
 // Delete Business user
