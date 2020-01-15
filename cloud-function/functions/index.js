@@ -307,7 +307,6 @@ exports.unSetLocation = functions.https.onCall((data,context) => {
   }
 });
 
-//TODO: get user id and set as reference
 /*
 Input parameters:
   - availability : int
@@ -321,7 +320,7 @@ exports.setAvailability = functions.https.onCall((data, context) => {
   let availability = data.availability;
   let lat = data.lat;
   let lon = data.lon;
-console.log(availability + ',[' + lat + ',' + lon + ']');
+
   if(Number.isInteger(availability) && lat && lon)
   {
     if(context.auth){
@@ -408,7 +407,6 @@ console.log(availability + ',[' + lat + ',' + lon + ']');
   }
 });
 
-//TODO: get user id and set as reference
 /*
 Input parameters:
   - radius : int
@@ -434,8 +432,9 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
 
       if(rad != NaN && lat != NaN && lon != NaN)
       {
-        try{
-          return googleMapsClient.placesNearby({
+        const getDataAsync = [];
+        getDataAsync.push(
+          googleMapsClient.placesNearby({
             language: 'en',
             location: [lat,lon],
             radius: rad,
@@ -455,48 +454,37 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
           })
           .catch(function(error) {
             console.error(error);
-          });
-          
-        }catch(error){
-          console.log(error);
-        }finally{
-          try{
-            return queryOverpass(`
-              [out:json][timeout:25];
-              node
-                  (52.778,6.885,52.804, 6.904)
-                  ["amenity"="parking"];
-              out body;
-            `)
-            .then((response)=>{
-              console.log(response);
-              response.forEach(result => {
-                parkingSpots.push({
-                  'lat' : result.lat,
-                  'lon' : result.lon,
-                  'name' : result.tags.name || null,
-                  'capacity' : result.tags.capacity || null
-                });
+          })
+        );
+        getDataAsync.push(
+          queryOverpass(`
+            [out:json][timeout:25];
+            node
+                (52.778,6.885,52.804, 6.904)
+                ["amenity"="parking"];
+            out body;
+          `)
+          .then((response)=>{
+            response.forEach(result => {
+              parkingSpots.push({
+                'lat' : result.lat,
+                'lon' : result.lon,
+                'name' : result.tags.name || null,
+                'capacity' : result.tags.capacity || null
               });
-              console.log('osm done');
-              console.log('all entries:')
-              console.log(parkingSpots);
-              })
-              .catch(function(error) {
-                console.error(error);
-              });
-          }catch(error){
-            console.log(error);
-          }finally{
-            //Ours stuff
-            return{
-              'Code': 100,
-              'Status' : 'Success',
-              'Results' : parkingSpots
-            }
-          }
+            });
+            console.log(response);
+            console.log('osm done');
+            })
+            .catch(function(error) {
+              console.error(error);
+          })
+        );
+        // waits for all async operations in array to finish and returns the response
+        return Promise.all(getDataAsync).then( () => {
+          return parkingSpots;
+        });
 
-        }
       }else{
         console.log('Parameters not numbers');
         return {

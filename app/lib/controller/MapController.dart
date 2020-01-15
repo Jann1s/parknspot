@@ -25,8 +25,8 @@ class MapController {
         'latitude': position.latitude,
         'longitude': position.longitude
       });
-
-      if(resp.data['Code'] == 100){
+print(resp.data);
+      //if(resp.data['Code'] == 100){
         
         /*    
         return resp.data['Results']['results'].map<Marker>((result) => new Marker(
@@ -37,19 +37,18 @@ class MapController {
                   result['name']),
         )).toList();
         */
-        print(resp.data['Results']);
+      //  print(resp.data);
         return [];
-      }else{
-        print('code != 100');
-        return [];
-      }
+      //}else{
+      //  return [];
+      //}
     }on CloudFunctionsException catch (e) {
       print('CloudFunctionsException');
       print(e);
       return [];
     }catch(e){
       print('Generic exception');
-      print(e);
+      print(e.toString());
       return [];
     }
   }
