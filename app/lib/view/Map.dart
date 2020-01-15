@@ -40,7 +40,6 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
 
 //Get places suggestions from Places API
   Future<Void> _getLocationResults(String input) async {
-    final GoogleMapController placesController = await _controller.future;
     List<Places> _displayResults = [];
     if ((input.isEmpty)) {
       Main.showToast('Enter search text');
