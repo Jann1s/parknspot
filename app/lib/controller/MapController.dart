@@ -27,29 +27,30 @@ class MapController {
       });
 
       if(resp.data['Code'] == 100){
-        //print(resp.data['Places']);
-    
-        return resp.data['Places']['results'].map<Marker>((result) => new Marker(
+        
+        /*    
+        return resp.data['Results']['results'].map<Marker>((result) => new Marker(
           markerId: MarkerId(result['id'].toString()),
           position: LatLng(result['geometry']['location']['lat'], result['geometry']['location']['lng']),
           infoWindow: InfoWindow(
               title:
                   result['name']),
         )).toList();
-        
-        //return resp.data['Places']['results'].map<String>((result) => result['name'].toString()).toList();
+        */
+        print(resp.data['Results']);
+        return [];
       }else{
         print('code != 100');
-        //return false;
+        return [];
       }
     }on CloudFunctionsException catch (e) {
       print('CloudFunctionsException');
       print(e);
-      //return false;
+      return [];
     }catch(e){
       print('Generic exception');
       print(e);
-      //return false;
+      return [];
     }
   }
 }

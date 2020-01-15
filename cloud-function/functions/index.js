@@ -419,10 +419,12 @@ Output parameters:
   - Code : int
 */
 exports.getParkingLocations = functions.https.onCall((data,context) => {
+
   var rad = data.radius;
   var lat = data.latitude; 
   var lon = data.longitude;
-
+  var parkingSpots = [];
+  
   if(context.auth){
     if(rad && lat && lon)
     {
@@ -432,35 +434,69 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
 
       if(rad != NaN && lat != NaN && lon != NaN)
       {
-        return googleMapsClient.placesNearby({
-          language: 'en',
-          location: [lat,lon],
-          radius: rad,
-          opennow: true,
-          type: 'parking'
-        }).asPromise().then((response) => {
-          return {
-            'Code' : 100,
-            'Status': 'Success',
-            'Places': response.json
+        try{
+          return googleMapsClient.placesNearby({
+            language: 'en',
+            location: [lat,lon],
+            radius: rad,
+            opennow: true,
+            type: 'parking'
+          })
+          .asPromise().then((response) => {
+            response.json.results.forEach(result => {
+              parkingSpots.push({  
+                'lat' : result.geometry.location.lat,
+                'lon' : result.geometry.location.lng,
+                'name' : result.name
+              });
+            });
+            console.log(response.json.results);
+            console.log('gm done');
+          })
+          .catch(function(error) {
+            console.error(error);
+          });
+          
+        }catch(error){
+          console.log(error);
+        }finally{
+          try{
+            return queryOverpass(`
+              [out:json][timeout:25];
+              node
+                  (52.778,6.885,52.804, 6.904)
+                  ["amenity"="parking"];
+              out body;
+            `)
+            .then((response)=>{
+              console.log(response);
+              response.forEach(result => {
+                parkingSpots.push({
+                  'lat' : result.lat,
+                  'lon' : result.lon,
+                  'name' : result.tags.name || null,
+                  'capacity' : result.tags.capacity || null
+                });
+              });
+              console.log('osm done');
+              console.log('all entries:')
+              console.log(parkingSpots);
+              })
+              .catch(function(error) {
+                console.error(error);
+              });
+          }catch(error){
+            console.log(error);
+          }finally{
+            //Ours stuff
+            return{
+              'Code': 100,
+              'Status' : 'Success',
+              'Results' : parkingSpots
+            }
           }
-          /* 
-          return queryOverpass(`
-            [out:json][timeout:25];
-            node(413536);
-            out body;
-          `)
-          .then(console.log)
-          .catch(console.error)
-          */
-        })
-        .catch(function(error) {
-          console.error(error);
-          return {
-            'Code' : 200,
-            'Status' : 'Error, try again later'
-          }
-        });
+
+        }
       }else{
         console.log('Parameters not numbers');
         return {

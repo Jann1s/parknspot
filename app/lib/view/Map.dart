@@ -24,7 +24,6 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   final Map<String, Marker> _markers = {};
-  List<Marker> _parkingMarkers;
   List<Placemark> placemarks;
   Position position;
   String searchAddress;
@@ -43,7 +42,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   }
 
   void _checkSpots(int radius) async {
-    _markers.clear();
+    
     List<Marker> tmpMarkers = await _mapController.getParkingLocations(radius);
 
     setState(() {
