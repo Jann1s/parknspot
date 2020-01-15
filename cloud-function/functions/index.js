@@ -342,7 +342,7 @@ exports.setLocation = functions.https.onCall((data,context) => {
       lat = parseFloat(lat);
       lon = parseFloat(lon);
 
-      if(lat != NaN && lon != NaN)
+      if(lat != NaN && lon != NaN && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)
       {
         let location = new admin.firestore.GeoPoint(lat,lon);
         let timestamp = admin.firestore.FieldValue.serverTimestamp();
