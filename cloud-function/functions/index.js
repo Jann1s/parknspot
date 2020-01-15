@@ -4,6 +4,7 @@ const googleMapsClient = require('@google/maps').createClient({
     key: 'AIzaSyAcEYs5nXBC0DlNxZzneG_bLm_W4ZDwf4g',
     Promise: Promise
   });
+const queryOverpass = require('@derhuerst/query-overpass');
 
 admin.initializeApp();
 admin.firestore().settings( { timestampsInSnapshots: true });
@@ -306,7 +307,6 @@ exports.unSetLocation = functions.https.onCall((data,context) => {
   }
 });
 
-//TODO: get user id and set as reference
 /*
 Input parameters:
   - availability : int
@@ -320,7 +320,7 @@ exports.setAvailability = functions.https.onCall((data, context) => {
   let availability = data.availability;
   let lat = data.lat;
   let lon = data.lon;
-console.log(availability + ',[' + lat + ',' + lon + ']');
+
   if(Number.isInteger(availability) && lat && lon)
   {
     if(context.auth){
@@ -407,23 +407,103 @@ console.log(availability + ',[' + lat + ',' + lon + ']');
   }
 });
 
-/**
- * Enter search radius and cordinates
- * Returns list of parking objects in json
- */
-//https://us-central1-parknspot-262413.cloudfunctions.net/getParkingLocations?rad=(search radius goes here)l&at=(latitude goes here)&lon=(longitude goes here)
-exports.getParkingLocations = functions.https.onRequest(async (req,res) => {
-    var radius = parseFloat(req.query.rad);
-    var lat = parseFloat(req.query.lat); 
-    var lon = parseFloat(req.query.lon);
-    googleMapsClient.placesNearby({
-        language: 'en',
-        location: [lat,lon],
-        radius: radius,
-        opennow: true,
-        type: 'parking'
-      }).asPromise().then((response) => {
-        console.log(response.json)
-      })
-      .catch(err => console.log(err));
+/*
+Input parameters:
+  - radius : int
+  - lat : float
+  - lon : float
+Output parameters:
+  - Status : string
+  - Code : int
+*/
+exports.getParkingLocations = functions.https.onCall((data,context) => {
+
+  var rad = data.radius;
+  var lat = data.latitude; 
+  var lon = data.longitude;
+  var parkingSpots = [];
+  
+  if(context.auth){
+    if(rad && lat && lon)
+    {
+      rad = parseFloat(rad);
+      lat = parseFloat(lat); 
+      lon = parseFloat(lon);
+
+      if(rad != NaN && lat != NaN && lon != NaN)
+      {
+        const getDataAsync = [];
+        getDataAsync.push(
+          googleMapsClient.placesNearby({
+            language: 'en',
+            location: [lat,lon],
+            radius: rad,
+            opennow: true,
+            type: 'parking'
+          })
+          .asPromise().then((response) => {
+            response.json.results.forEach(result => {
+              parkingSpots.push({  
+                'lat' : result.geometry.location.lat,
+                'lon' : result.geometry.location.lng,
+                'name' : result.name
+              });
+            });
+            console.log(response.json.results);
+            console.log('gm done');
+          })
+          .catch(function(error) {
+            console.error(error);
+          })
+        );
+        getDataAsync.push(
+          queryOverpass(`
+            [out:json][timeout:25];
+            node
+                (52.778,6.885,52.804, 6.904)
+                ["amenity"="parking"];
+            out body;
+          `)
+          .then((response)=>{
+            response.forEach(result => {
+              parkingSpots.push({
+                'lat' : result.lat,
+                'lon' : result.lon,
+                'name' : result.tags.name || null,
+                'capacity' : result.tags.capacity || null
+              });
+            });
+            console.log(response);
+            console.log('osm done');
+            })
+            .catch(function(error) {
+              console.error(error);
+          })
+        );
+        // waits for all async operations in array to finish and returns the response
+        return Promise.all(getDataAsync).then( () => {
+          return parkingSpots;
+        });
+
+      }else{
+        console.log('Parameters not numbers');
+        return {
+          'Code' : 201,
+          'Status' : 'Incorrect parameters'
+        }
+      }
+    }else{
+      console.log('Missing parameters');
+      return {
+        'Code' : 201,
+        'Status' : 'Incorrect parameters'
+      }
+    }
+  }else{
+    console.log('Unauth user');
+    return {
+      'Code' : 201,
+      'Status' : 'Incorrect parameters'
+    }
+  }
 });
