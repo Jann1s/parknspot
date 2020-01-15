@@ -1,5 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const bcrypt = require('./custom-bcrypt');
 const googleMapsClient = require('@google/maps').createClient({
     key: 'AIzaSyAcEYs5nXBC0DlNxZzneG_bLm_W4ZDwf4g',
     Promise: Promise
@@ -41,52 +42,234 @@ exports.deleteUser = functions.auth.user().onDelete((user) => {
     });
 });
 
-exports.createBusinessUser = functions.https.onRequest((req, res) => {
-    let apiKey = req.query.apikey;
-    let business = req.query.name;
-    let timestamp = admin.firestore.FieldValue.serverTimestamp();
-    let latitude = parseFloat(req.query.lat);
-    let longitude = parseFloat(req.query.lon);
-    let location = {
-        google: new admin.firestore.GeoPoint(latitude,longitude)
-    };
+//Create Business User
+exports.createBusinessUser = functions.https.onRequest(async (req, res) => {
+  res.set('Content-Type', 'application/json');
 
-    admin.firestore().collection('business').add(
+  console.log(req.body.data);
+  
+  let timestamp = admin.firestore.FieldValue.serverTimestamp();
+  let business = req.body.data.name;
+  let apiKey = bcrypt.hash(business.concat(timestamp.toString()), {salt: Math.random().toString(36).substring(2, 15), rounds: 10});
+  let lat = req.body.data.lat;
+  let lon = req.body.data.lon;
+
+  //Check if all required parameters are set
+  if(business && lat && lon)
+  {
+    lat = parseFloat(lat);
+    lon = parseFloat(lon);
+
+    //Check if latitude and longitude are numbers
+    if(lat != NaN && lon != NaN && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)
     {
-        'name' : business,
-        'parkingLocation' : location,
-        'API' : apiKey,
-        'timestamp' : timestamp       
-    });
-        
-        res => {
-            console.log(res);
+      let geo_point = new admin.firestore.GeoPoint(lat,lon);
+
+      //Create business User
+      admin.firestore().collection('/business').add(
+      {
+        'name': business,
+        'location': geo_point,
+        'API': apiKey,
+        'timestamp': timestamp       
+      }).then(function() {
+
+        let queryLocation = admin.firestore().collection('/locations').where('location','==', geo_point);
+        queryLocation.limit(1).get().then(querySnapshot => 
+        {
+          if(querySnapshot.empty)
+          {
+            //Create location
+            admin.firestore().collection('/locations').add(
+              {
+                'availability': 1,
+                'location': geo_point,
+                'timestamp': timestamp       
+              }
+            ).then(function(){
+              res.send ({
+                'Code' : 100,
+                'Status' : 'Success - Business User and Location created',
+                'API-KEY' : apiKey
+              })
+            }).catch(function(error){
+              res.send({
+                data: {
+                  'Code' : 200,
+                  'Status' : 'Error - Business User created but failed to create new Location',
+                  'API-KEY' : apiKey
+                }
+              });
+              console.log(error);
+            })
+          }
+          else{
+            res.send ({
+              'Code' : 100,
+              'Status' : 'Success - Business User created',
+              'API-KEY' : apiKey
+            })
+          }
+        })
+      }).catch(function(error) {
+        res.send({
+          data: {
+            'Code' : 200,
+            'Status' : 'Error, try again later'
+          }
+        });
+        console.log(error);
+      });       
+    }else{
+      res.send({
+        data: {
+          'Code': 202,
+          'Status': 'Incorrect lat or lon'
         }
-    return;
+      });
+    } 
+  }else{
+    res.send({
+      data: {
+        'Code' : 201,
+        'Status': 'Incorrect parameters'
+      }
+    });
+  }
 });
 
 // Update Business user parking availability
-//Example: https://us-central1-parknspot-262413.cloudfunctions.net/updateBusinessUserAvailability?docidbusiness=ectB0FVLGonCqb7i5OAW&docidlocations=lv4nzaIGodi0BaoKD6v1&availability=FULL
-exports.updateBusinessUserAvailability = functions.https.onRequest((req, res) => {
-    let docIdBusiness = req.query.docidbusiness;
-    let docIdLocations = req.query.docidlocations;
-    let availability = req.query.availability;
-    let timestamp = admin.firestore.FieldValue.serverTimestamp();
+exports.updateBusinessUserAvailability = functions.https.onRequest(async (req, res) => {
+  res.set('Content-Type', 'application/json');
 
-    admin.firestore().collection('locations').doc(docIdLocations).update(
-    {
-        'availability' : availability,
-        'timestamp' : timestamp
-    }),
-    admin.firestore().collection('business').doc(docIdBusiness).update(
+  let apiKey = req.body.data.apiKey;
+  let availability = req.body.data.availability;
+  let timestamp = admin.firestore.FieldValue.serverTimestamp();
+  let queryBusinessUser = admin.firestore().collection('/business').where('API','==', apiKey);  
+  
+  availability = parseInt(availability);
+
+  if(availability != NaN && availability <= 4 && availability >= 0)
+  {
+    queryBusinessUser.limit(1).get().then(querySnapshot =>
+      {
+        //Check if user with the requested API exist
+        if(!querySnapshot.empty)
         {
-            'timestamp': timestamp
-        }
-    );    
-    res => {
-        console.log(res);
+          let geo_point = querySnapshot.docs[0].get('location');
+          let queryLocation = admin.firestore().collection('/locations').where('location','==', geo_point);
+          queryLocation.limit(1).get().then(querySnapshot =>
+          {
+            //Check if requested location exists
+            if(!querySnapshot.empty)
+            {
+              let docIdLocations = querySnapshot.docs[0].id;
+              //Update availability
+              admin.firestore().collection('locations').doc(docIdLocations).update(
+                {
+                  availability: availability,
+                  timestamp: timestamp
+                }
+              //If editing location document was succesful
+              ).then(function(){
+                  res.send({
+                    data: {
+                      'Code' : 100,
+                      'Status' : 'Success - Location Availability updated'
+                    }
+                  });
+                }).catch(function(error) {
+                  res.send({
+                    data: {
+                      'Code' : 200,
+                      'Status' : 'Error - Availability was not updated'
+                    }
+                  });
+                  console.log(error);
+                });
+                //If location does not exist yet
+            }else{
+              //Create new location
+              admin.firestore().collection('/locations').add({
+                'availability' : availability,
+                'location' : geo_point,
+                'timestamp' : timestamp
+              }).then(function() {
+                res.send({
+                  data: {
+                    'Code': 100,
+                    'Status': 'Success - Location Document created'
+                  }
+                });
+              }).catch(function(error) {
+                res.send({
+                  data: {
+                    'Code' : 200,
+                    'Status' : 'Error - Location Document was not created'
+                  }
+                });
+                console.log(error);
+                });
+              }
+            });    
+        }else{
+          res.send({
+            data: {
+              'Code' : 200,
+              'Status' : 'Incorrect API-Key - User not found'
+            }
+          });
+        } 
+      }); 
+  }else{
+    res.send({
+      data: {
+        'Code' : 200,
+        'Status' : 'Incorrect Parameter - The Availability value has to be a number between 0 and 4'
+      }
+    });
+  }   
+});
+
+// Delete Business user
+exports.deleteBusinessUser = functions.https.onRequest((req, res) => {
+  res.set('Content-Type', 'application/json');
+
+  let apiKey = req.body.data.apiKey;
+  let query = admin.firestore().collection('/business').where('API','==', apiKey);
+
+  query.limit(1).get().then(querySnapshot => {
+    //Check if Business User exists
+    if(!querySnapshot.empty)
+    {
+      let docId = querySnapshot.docs[0].id;
+      admin.firestore().collection('business').doc(docId).delete()
+      .then(function(){
+        res.send({
+          data: {
+            'Code': 100,
+            'Status': 'Success - User deleted'
+          }
+        });
+      }).catch(function(error){
+        res.send({
+          data: {
+            'Code' : 200,
+            'Status' : 'Error - User was not deleted'
+          }
+        });
+        console.log(error);
+      });
     }
-    return;
+    else{
+      res.send({
+        data: {
+          'Code': 202,
+          'Status': 'Incorrect API-Key - User not found'
+        }
+      });
+    }
+  })  
 });
 
 /*
@@ -166,7 +349,7 @@ exports.setLocation = functions.https.onCall((data,context) => {
       lat = parseFloat(lat);
       lon = parseFloat(lon);
 
-      if(lat != NaN && lon != NaN)
+      if(lat != NaN && lon != NaN && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)
       {
         let location = new admin.firestore.GeoPoint(lat,lon);
         let timestamp = admin.firestore.FieldValue.serverTimestamp();
@@ -326,8 +509,8 @@ exports.setAvailability = functions.https.onCall((data, context) => {
     if(context.auth){
       lat = parseFloat(lat);
       lon = parseFloat(lon);
-
-      if(lat != NaN && lon != NaN)
+      
+      if(lat != NaN && lon != NaN && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)
       {
         let geo_point = new admin.firestore.GeoPoint(lat,lon);
         let timestamp = admin.firestore.FieldValue.serverTimestamp();
