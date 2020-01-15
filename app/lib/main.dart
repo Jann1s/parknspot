@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:parknspot/view/SplashScreen.dart';
 import 'package:parknspot/ThemeGlobals.dart';
@@ -8,6 +10,7 @@ import 'package:parknspot/controller/RegisterController.dart';
 import 'package:parknspot/view/Map.dart';
 import 'package:parknspot/view/Parking.dart';
 import 'package:parknspot/view/Profile.dart';
+import 'package:trust_fall/trust_fall.dart';
 
 void main() => runApp(MyApp());
 
@@ -22,6 +25,7 @@ class Main extends State<MyApp> {
   bool _checkedLogin = false;
   bool _loginVisible = true;
   bool _bottomNavBarVisible = false;
+  var checkJailBroken;
 
   int _currentPage = 1;
   PageController _pageController = PageController(
@@ -30,12 +34,13 @@ class Main extends State<MyApp> {
 
   LoginController _loginController;
   RegisterController _registerController;
-  MapController _mapController = new MapController();
+
 
   Main() {
     _registerController = new RegisterController(this);
     _loginController = new LoginController(this);
     _checkLogin();
+    _checkJailBroken();
   }
 
   @override
@@ -44,23 +49,24 @@ class Main extends State<MyApp> {
       title: 'Park\'n\'Spot',
       home: Scaffold(
         body: _getPageBody(),
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(0.0),
-          child: AppBar()
-        ),
-        bottomNavigationBar: _bottomNavBarVisible ? BottomNavigationBar(
-          currentIndex: _currentPage,
-          onTap: _onNavigationTap,
-          selectedItemColor: ThemeGlobals.parknspotMain,
-          items: [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.local_parking), title: Text('Parking')),
-            BottomNavigationBarItem(icon: Icon(Icons.map), title: Text('Map')),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.supervised_user_circle),
-                title: Text('Profile')),
-          ],
-        ) : null,
+        appBar:
+            PreferredSize(preferredSize: Size.fromHeight(0.0), child: AppBar()),
+        bottomNavigationBar: _bottomNavBarVisible
+            ? BottomNavigationBar(
+                currentIndex: _currentPage,
+                onTap: _onNavigationTap,
+                selectedItemColor: ThemeGlobals.parknspotMain,
+                items: [
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.local_parking), title: Text('Parking')),
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.map), title: Text('Map')),
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.supervised_user_circle),
+                      title: Text('Profile')),
+                ],
+              )
+            : null,
       ),
       theme: ThemeData(
         brightness: Brightness.light,
@@ -78,17 +84,13 @@ class Main extends State<MyApp> {
         onPageChanged: _onPageChanged,
         children: <Widget>[Parking(), MyMap(), Profile(_loginController)],
       );
-    }
-    else if (CurrentPage.Login == _pageView) {
+    } else if (CurrentPage.Login == _pageView) {
       return _loginController.getView();
-    }
-    else if (CurrentPage.Register == _pageView) {
+    } else if (CurrentPage.Register == _pageView) {
       return _registerController.getView();
-    }
-    else if (CurrentPage.ForgotPassword == _pageView) {
+    } else if (CurrentPage.ForgotPassword == _pageView) {
       return _loginController.getResetView();
-    }
-    else if (CurrentPage.Splashscreen == _pageView) {
+    } else if (CurrentPage.Splashscreen == _pageView) {
       return SplashScreen();
     }
   }
@@ -161,8 +163,7 @@ class Main extends State<MyApp> {
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.CENTER,
         timeInSecForIos: 1,
-        fontSize: 16.0
-    );
+        fontSize: 16.0);
   }
 
   void _checkLogin() async {
@@ -170,19 +171,22 @@ class Main extends State<MyApp> {
 
     if (loggedIn) {
       successfulLogin();
-    }
-    else {
+    } else {
       setState(() {
         _pageView = CurrentPage.Login;
       });
     }
   }
+
+  void _checkJailBroken() async {
+    bool isJailbroken = await TrustFall.isJailBroken;
+    bool isRealDevice = await TrustFall.isRealDevice;
+    bool isOnExternalStorage = await TrustFall.isOnExternalStorage;
+
+    if (isJailbroken || isOnExternalStorage || !isRealDevice) {
+      exit(0);
+    }
+  }
 }
 
-enum CurrentPage {
-  MainApp,
-  Login,
-  Register,
-  Splashscreen,
-  ForgotPassword
-}
+enum CurrentPage { MainApp, Login, Register, Splashscreen, ForgotPassword }

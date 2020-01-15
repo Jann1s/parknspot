@@ -5,6 +5,7 @@ const googleMapsClient = require('@google/maps').createClient({
     key: 'AIzaSyAcEYs5nXBC0DlNxZzneG_bLm_W4ZDwf4g',
     Promise: Promise
   });
+const queryOverpass = require('@derhuerst/query-overpass');
 
 admin.initializeApp();
 admin.firestore().settings( { timestampsInSnapshots: true });
@@ -19,6 +20,9 @@ exports.createUser = functions.auth.user().onCreate((user) => {
   {
     'email': mail,
     'timestamp': timestamp
+  }).catch(function(error){
+    console.error('Failed to add user! email: ' + mail);
+    console.error(error);
   });
 });
 
@@ -28,10 +32,14 @@ exports.deleteUser = functions.auth.user().onDelete((user) => {
     var doc = admin.firestore().collection('users').where('email','==', mail);
 
     doc.get().then(function(querySnapshot) {
-        querySnapshot.forEach(function(doc) {
-          doc.ref.delete();
+      querySnapshot.forEach(function(doc) {
+        doc.ref.delete().catch(function(error){
+          console.error('Failed to delete user! user.id: ' + user.id);
         });
       });
+    }).catch(function(error) {
+      console.error('Failed to get user! email:' + mail);
+    });
 });
 
 //Create Business User
@@ -313,7 +321,7 @@ exports.isLocationSet = functions.https.onCall((data, context) =>{
       };
     });
   }else{
-    Console.log('Unauth user');
+    console.log('Unauth user');
     return {
       'Code' : 201,
       'Status': 'Incorrect parameters'
@@ -321,7 +329,6 @@ exports.isLocationSet = functions.https.onCall((data, context) =>{
   }
 });
 
-//TODO: get user id and set as reference
 /*
 Input parameters:
   - context.auth.token : firebase.auth.DecodedIdToken
@@ -392,7 +399,6 @@ exports.setLocation = functions.https.onCall((data,context) => {
   }
 });
 
-//TODO: get user id and set as reference
 /*
 Input parameters:
   - context.auth.token : firebase.auth.DecodedIdToken 
@@ -425,7 +431,8 @@ exports.unSetLocation = functions.https.onCall((data,context) => {
               return admin.firestore().collection('/locations').add({
                 'availability': 1,
                 'location' : location,
-                'timestamp': timestamp
+                'timestamp': timestamp,
+                'userRef': admin.firestore().collection('/users').doc(doc_id)
               }).then(function(){
                 return { 
                   'Code' : 100,
@@ -442,7 +449,8 @@ exports.unSetLocation = functions.https.onCall((data,context) => {
               return  admin.firestore().collection('/locations').doc(doc_id).update({
                 'availability' : 1,
                 'location' : location,
-                'timestamp' : timestamp
+                'timestamp' : timestamp,
+                'userRef': admin.firestore().collection('/users').doc(doc_id)
               }).then(function() {
                 return {
                   'Code' : 100,
@@ -482,7 +490,6 @@ exports.unSetLocation = functions.https.onCall((data,context) => {
   }
 });
 
-//TODO: get user id and set as reference
 /*
 Input parameters:
   - availability : int
@@ -492,111 +499,194 @@ Output parameters:
   - Status : string
   - Code : int
 */
-exports.setAvailability = functions.https.onRequest(async (req,res) => {
-  res.set('Content-Type', 'application/json')
+exports.setAvailability = functions.https.onCall((data, context) => {
+  let availability = data.availability;
+  let lat = data.lat;
+  let lon = data.lon;
 
-  console.log(req.body.data);
-
-  let availability = req.body.data.availability;
-  let lat = req.body.data.lat;
-  let lon = req.body.data.lon;
-
-  if(availability && lat && lon)
+  if(Number.isInteger(availability) && lat && lon)
   {
-    lat = parseFloat(lat);
-    lon = parseFloat(lon);
-
-    if(lat != NaN && lon != NaN && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)
-    {
-      let geo_point = new admin.firestore.GeoPoint(lat,lon);
-      let timestamp = admin.firestore.FieldValue.serverTimestamp();
-      let query = admin.firestore().collection('/locations').where('location','==', geo_point);
-
-      query.limit(1).get().then(querySnapshot => 
+    if(context.auth){
+      lat = parseFloat(lat);
+      lon = parseFloat(lon);
+      
+      if(lat != NaN && lon != NaN && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)
       {
-        if(!querySnapshot.empty){
-          let doc_id = querySnapshot.docs[0].id;
-          admin.firestore().collection('/locations').doc(doc_id).update({
-            'availability' : availability,
-            'location' : geo_point,
-            'timestamp' : timestamp
-          }).then(function() {
-            res.send({
-              data: {
-                "Code": 100,
-                "Status": "Success"
-              }
-            });
-          }).catch(function(error) {
-            console.error(error);
-            res.send({
-              data: {
-                'Code' : 200,
-                'Status' : 'Error, try again later'
-              }
-            });
+        let geo_point = new admin.firestore.GeoPoint(lat,lon);
+        let timestamp = admin.firestore.FieldValue.serverTimestamp();
+        let email = context.auth.token.email;
+        
+        let query = admin.firestore().collection('/users').where('email', '==', email);
+        return query.limit(1).get().then(querySnapshot => {
+          let user_doc_id = querySnapshot.docs[0].id;
+
+          let query = admin.firestore().collection('/locations').where('location','==', geo_point);
+          return query.limit(1).get().then(querySnapshot => 
+          {
+            if(!querySnapshot.empty){
+              let location_doc_id = querySnapshot.docs[0].id;
+              return admin.firestore().collection('/locations').doc(location_doc_id).update({
+                'availability' : availability,
+                'location' : geo_point,
+                'timestamp' : timestamp,
+                'userRef' : admin.firestore().collection('/users').doc(user_doc_id)
+              }).then(function() {
+                return {
+                  "Code": 100,
+                  "Status": "Success"
+                }
+              }).catch(function(error) {
+                console.error(error);
+                return {
+                  'Code' : 200,
+                  'Status' : 'Error, try again later'
+                }
+              });
+            }else{
+              return admin.firestore().collection('/locations').add({
+                'availability' : availability,
+                'location' : geo_point,
+                'timestamp' : timestamp,
+                'userRef' : admin.firestore().collection('/users').doc(user_doc_id)
+              }).then(function() {
+                return {
+                  'Code': 100,
+                  'Status': 'Success'
+                }
+              }).catch(function(error) {
+                console.error(error);
+                return {
+                  'Code' : 200,
+                  'Status' : 'Error, try again later'
+                }
+              });
+            }
           });
-        }else{
-          admin.firestore().collection('/locations').add({
-            'availability' : availability,
-            'location' : geo_point,
-            'timestamp' : timestamp
-          }).then(function() {
-            res.send({
-              data: {
-                'Code': 100,
-                'Status': 'Success'
-              }
-            });
-          }).catch(function(error) {
-            console.error(error);
-            res.send({
-              data: {
-                'Code' : 200,
-                'Status' : 'Error, try again later'
-            
-              }
-            });
-          });
-        }
-      });
-    }
-    else
-    {
-      res.send({
-        data: {
+        }).catch(function(error) {
+          console.log(error);
+          return {
+            'Code' : 200,
+            'Status' : 'Error, try again later'
+          }
+        });
+      }else{
+        return {
           'Code': 202,
           'Status': 'Incorrect lat or lon'
         }
-      });
-    }
-  }else{
-    res.send({
-      data: {
+      }
+    }else{
+      console.log('Unauth user');
+      return {
         'Code' : 201,
         'Status': 'Incorrect parameters'
       }
-    });
+    }
+  }else{
+    return {
+      'Code' : 201,
+      'Status': 'Incorrect parameters'
+    }
   }
 });
 
-/**
- * Enter search radius and cordinates
- * Returns list of parking objects in json
- */
-//https://us-central1-parknspot-262413.cloudfunctions.net/getParkingLocations?rad=(search radius goes here)l&at=(latitude goes here)&lon=(longitude goes here)
-exports.getParkingLocations = functions.https.onRequest(async (req,res) => {
-    var radius = parseFloat(req.query.rad);
-    var lat = parseFloat(req.query.lat); 
-    var lon = parseFloat(req.query.lon);
-    googleMapsClient.placesNearby({
-        language: 'en',
-        location: [lat,lon],
-        radius: radius,
-        opennow: true,
-        type: 'parking'
-      }).asPromise().then((response) => {
-        console.log(response.json)
-      })
-      .catch(err => console.log(err));
+/*
+Input parameters:
+  - radius : int
+  - lat : float
+  - lon : float
+Output parameters:
+  - Status : string
+  - Code : int
+*/
+exports.getParkingLocations = functions.https.onCall((data,context) => {
+
+  var rad = data.radius;
+  var lat = data.latitude; 
+  var lon = data.longitude;
+  var parkingSpots = [];
+  
+  if(context.auth){
+    if(rad && lat && lon)
+    {
+      rad = parseFloat(rad);
+      lat = parseFloat(lat); 
+      lon = parseFloat(lon);
+
+      if(rad != NaN && lat != NaN && lon != NaN)
+      {
+        const getDataAsync = [];
+        getDataAsync.push(
+          googleMapsClient.placesNearby({
+            language: 'en',
+            location: [lat,lon],
+            radius: rad,
+            opennow: true,
+            type: 'parking'
+          })
+          .asPromise().then((response) => {
+            response.json.results.forEach(result => {
+              parkingSpots.push({  
+                'lat' : result.geometry.location.lat,
+                'lon' : result.geometry.location.lng,
+                'name' : result.name
+              });
+            });
+            console.log(response.json.results);
+            console.log('gm done');
+          })
+          .catch(function(error) {
+            console.error(error);
+          })
+        );
+        getDataAsync.push(
+          queryOverpass(`
+            [out:json][timeout:25];
+            node
+                (52.778,6.885,52.804, 6.904)
+                ["amenity"="parking"];
+            out body;
+          `)
+          .then((response)=>{
+            response.forEach(result => {
+              parkingSpots.push({
+                'lat' : result.lat,
+                'lon' : result.lon,
+                'name' : result.tags.name || null,
+                'capacity' : result.tags.capacity || null
+              });
+            });
+            console.log(response);
+            console.log('osm done');
+            })
+            .catch(function(error) {
+              console.error(error);
+          })
+        );
+        // waits for all async operations in array to finish and returns the response
+        return Promise.all(getDataAsync).then( () => {
+          return parkingSpots;
+        });
+
+      }else{
+        console.log('Parameters not numbers');
+        return {
+          'Code' : 201,
+          'Status' : 'Incorrect parameters'
+        }
+      }
+    }else{
+      console.log('Missing parameters');
+      return {
+        'Code' : 201,
+        'Status' : 'Incorrect parameters'
+      }
+    }
+  }else{
+    console.log('Unauth user');
+    return {
+      'Code' : 201,
+      'Status' : 'Incorrect parameters'
+    }
+  }
 });

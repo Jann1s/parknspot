@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:parknspot/controller/MapController.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/credentials.dart';
 import 'package:parknspot/main.dart';
@@ -28,9 +29,29 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   String searchAddress;
   List<Places> _placesList;
   TextEditingController _searchAdress = new TextEditingController();
-
+  MapController _mapController;
   List<Places> _suggestedList = [];
 
+  Completer<GoogleMapController> _googleMapsController = Completer();
+
+  MyMapState()
+  {
+    _mapController = new MapController(this);
+    // TODO: change radius
+    _checkSpots(5000);
+  }
+
+  void _checkSpots(int radius) async {
+    
+    List<Marker> tmpMarkers = await _mapController.getParkingLocations(radius);
+
+    setState(() {
+      for(int i = 0; i < tmpMarkers.length; i++){
+        _markers[i.toString()] = tmpMarkers[i];
+      }
+     
+    });
+  }
   Completer<GoogleMapController> _controller = Completer();
 
   static final CameraPosition _emmenPosition = CameraPosition(
@@ -40,7 +61,6 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
 
 //Get places suggestions from Places API
   Future<Void> _getLocationResults(String input) async {
-    final GoogleMapController placesController = await _controller.future;
     List<Places> _displayResults = [];
     if ((input.isEmpty)) {
       Main.showToast('Enter search text');
@@ -161,14 +181,24 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                   return placesCardBuilder(context, index);
                 }),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
+                  Align(alignment: Alignment.bottomCenter,
+         child: FloatingActionButton(
         onPressed: _getLocation,
         tooltip: 'Get Location',
         child: Icon(Icons.my_location),
+        ),
+       
+        ),
+        Align(alignment: Alignment.bottomRight,
+         child: FloatingActionButton.extended(
+            onPressed: (){_checkSpots(3000);},
+            label: Text('Places Nearby'),
+            icon: Icon(Icons.place),
+            ),
+       
+        ),
+        ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
