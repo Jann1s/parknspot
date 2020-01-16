@@ -13,8 +13,22 @@ class MapController {
     _myMapState = myMapState;
   }
 
-  Future<List<Marker>> getParkingLocations(int radius) async{
-    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  Future<Set<Marker>> getParkingLocations(int radius, [double lat, double lon]) async{
+    double _lat;
+    double _lon;
+
+    if(lat == null && lon == null)
+    {
+      Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      _lat = position.latitude;
+      _lon = position.longitude;
+    }else{
+      _lat = lat;
+      _lon = lon;
+    }
+    
+    
+    Set<Marker> _results = Set();
     
     final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
       functionName: 'getParkingLocations'
@@ -22,34 +36,44 @@ class MapController {
     try {
       HttpsCallableResult resp = await callable.call(<String,dynamic>{
         'radius' : radius,
-        'latitude': position.latitude,
-        'longitude': position.longitude
+        'latitude': _lat,
+        'longitude': _lon
       });
-print(resp.data);
-      //if(resp.data['Code'] == 100){
-        
-        /*    
-        return resp.data['Results']['results'].map<Marker>((result) => new Marker(
-          markerId: MarkerId(result['id'].toString()),
-          position: LatLng(result['geometry']['location']['lat'], result['geometry']['location']['lng']),
-          infoWindow: InfoWindow(
-              title:
-                  result['name']),
-        )).toList();
-        */
-      //  print(resp.data);
-        return [];
-      //}else{
-      //  return [];
-      //}
+
+      if(resp.data is Map)
+      {
+        if(resp.data['Code'] == 100)
+        {
+          List apiResults = resp.data['Results'];
+          for(int i = 0; i < apiResults.length; i++)
+          {
+            Marker tmpMarker = Marker(
+              markerId: MarkerId(i.toString()),
+              position: LatLng(apiResults[i]['lat'], apiResults[i]['lon']),
+              infoWindow: InfoWindow(
+                title: apiResults[i]['name'] != null ? apiResults[i]['name'] : 'Unamed'
+              )
+            );
+            
+            _results.add(tmpMarker);
+          }
+
+          return _results;
+        }else{
+          // return empty response
+          return Set();
+        }
+      }
+
+      return Set();
     }on CloudFunctionsException catch (e) {
       print('CloudFunctionsException');
       print(e);
-      return [];
+      return Set();
     }catch(e){
       print('Generic exception');
       print(e.toString());
-      return [];
+      return Set();
     }
   }
 }

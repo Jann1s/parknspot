@@ -23,35 +23,30 @@ class MyMap extends StatefulWidget {
 class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-  final Map<String, Marker> _markers = {};
+  //final Map<String, Marker> _markers = {};
+  Set<Marker> _markers = {};
   List<Placemark> placemarks;
   Position position;
   String searchAddress;
-  List<Places> _placesList;
-  TextEditingController _searchAdress = new TextEditingController();
   MapController _mapController;
   List<Places> _suggestedList = [];
 
   Completer<GoogleMapController> _googleMapsController = Completer();
 
-  MyMapState()
-  {
+  MyMapState() {
     _mapController = new MapController(this);
-    // TODO: change radius
     _checkSpots(5000);
   }
 
-  void _checkSpots(int radius) async {
-    
-    List<Marker> tmpMarkers = await _mapController.getParkingLocations(radius);
+  void _checkSpots(int radius, [double lat, double lon]) async {
+    Set<Marker> tmpMarkers =
+        await _mapController.getParkingLocations(radius, lat, lon);
 
     setState(() {
-      for(int i = 0; i < tmpMarkers.length; i++){
-        _markers[i.toString()] = tmpMarkers[i];
-      }
-     
+      _markers.addAll(tmpMarkers);
     });
   }
+
   Completer<GoogleMapController> _controller = Completer();
 
   static final CameraPosition _emmenPosition = CameraPosition(
@@ -127,7 +122,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                 '${placemarks[0].thoroughfare}, ${placemarks[0].postalCode}'),
         icon: bitmapIcon,
       );
-      _markers["Current Location"] = marker;
+      _markers.add(marker);
     });
   }
 
@@ -140,7 +135,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
           GoogleMap(
             mapType: MapType.normal,
             initialCameraPosition: _emmenPosition,
-            markers: _markers.values.toSet(),
+            markers: _markers,
             onMapCreated: (GoogleMapController controller) {
               setState(() {
                 _controller.complete(controller);
@@ -181,22 +176,29 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                   return placesCardBuilder(context, index);
                 }),
           ),
-                  Align(alignment: Alignment.bottomCenter,
-         child: FloatingActionButton(
-        onPressed: _getLocation,
-        tooltip: 'Get Location',
-        child: Icon(Icons.my_location),
-        ),
-       
-        ),
-        Align(alignment: Alignment.bottomRight,
-         child: FloatingActionButton.extended(
-            onPressed: (){_checkSpots(3000);},
-            label: Text('Places Nearby'),
-            icon: Icon(Icons.place),
+          Container(
+            margin: EdgeInsetsDirectional.fromSTEB(0, 0, 10, 10),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FloatingActionButton(
+                onPressed: _getLocation,
+                tooltip: 'Get Location',
+                child: Icon(Icons.my_location),
+              ),
             ),
-       
-        ),
+          ),
+          Container(
+            margin: EdgeInsetsDirectional.fromSTEB(0, 120, 10, 0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FloatingActionButton(
+                onPressed: () {
+                  _checkSpots(3000);
+                },
+                child: Icon(Icons.local_parking),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -231,6 +233,8 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
             setState(() {
               _suggestedList = [];
             });
+            _checkSpots(5000, result[0].position.latitude,
+                result[0].position.longitude);
           });
         },
       ),

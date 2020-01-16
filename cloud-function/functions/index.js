@@ -665,7 +665,18 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
         );
         // waits for all async operations in array to finish and returns the response
         return Promise.all(getDataAsync).then( () => {
-          return parkingSpots;
+          if(parkingSpots.length > 0){
+            return {
+              'Code' : 100,
+              'Status' : 'Success',
+              'Results' : parkingSpots
+            }
+          }else{
+            return {
+              'Code' : 200,
+              'Status' : 'Error, try again later'
+            }
+          }
         });
 
       }else{
