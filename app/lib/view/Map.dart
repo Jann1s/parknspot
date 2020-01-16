@@ -23,7 +23,8 @@ class MyMap extends StatefulWidget {
 class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-  final Map<String, Marker> _markers = {};
+  //final Map<String, Marker> _markers = {};
+  Set<Marker> _markers = {};
   List<Placemark> placemarks;
   Position position;
   String searchAddress;
@@ -37,19 +38,15 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   MyMapState()
   {
     _mapController = new MapController(this);
-    // TODO: change radius
     _checkSpots(5000);
   }
 
-  void _checkSpots(int radius) async {
+  void _checkSpots(int radius, [double lat, double lon]) async {
     
-    List<Marker> tmpMarkers = await _mapController.getParkingLocations(radius);
-
+    Set<Marker> tmpMarkers = await _mapController.getParkingLocations(radius, lat, lon);
+    
     setState(() {
-      for(int i = 0; i < tmpMarkers.length; i++){
-        _markers[i.toString()] = tmpMarkers[i];
-      }
-     
+      _markers.addAll(tmpMarkers);
     });
   }
   Completer<GoogleMapController> _controller = Completer();
@@ -127,7 +124,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                 '${placemarks[0].thoroughfare}, ${placemarks[0].postalCode}'),
         icon: bitmapIcon,
       );
-      _markers["Current Location"] = marker;
+      _markers.add(marker);
     });
   }
 
@@ -140,7 +137,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
           GoogleMap(
             mapType: MapType.normal,
             initialCameraPosition: _emmenPosition,
-            markers: _markers.values.toSet(),
+            markers: _markers,
             onMapCreated: (GoogleMapController controller) {
               setState(() {
                 _controller.complete(controller);
@@ -231,6 +228,7 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
             setState(() {
               _suggestedList = [];
             });
+            _checkSpots(5000,result[0].position.latitude, result[0].position.longitude);
           });
         },
       ),
