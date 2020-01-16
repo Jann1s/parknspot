@@ -643,7 +643,7 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
           queryOverpass(`
             [out:json][timeout:25];
             node
-                (52.778,6.885,52.804, 6.904)
+                (around: `+rad+`,`+lat+`, `+lon+`)
                 ["amenity"="parking"];
             out body;
           `)
