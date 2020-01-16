@@ -28,27 +28,25 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   List<Placemark> placemarks;
   Position position;
   String searchAddress;
-  List<Places> _placesList;
-  TextEditingController _searchAdress = new TextEditingController();
   MapController _mapController;
   List<Places> _suggestedList = [];
 
   Completer<GoogleMapController> _googleMapsController = Completer();
 
-  MyMapState()
-  {
+  MyMapState() {
     _mapController = new MapController(this);
     _checkSpots(5000);
   }
 
   void _checkSpots(int radius, [double lat, double lon]) async {
-    
-    Set<Marker> tmpMarkers = await _mapController.getParkingLocations(radius, lat, lon);
-    
+    Set<Marker> tmpMarkers =
+        await _mapController.getParkingLocations(radius, lat, lon);
+
     setState(() {
       _markers.addAll(tmpMarkers);
     });
   }
+
   Completer<GoogleMapController> _controller = Completer();
 
   static final CameraPosition _emmenPosition = CameraPosition(
@@ -178,22 +176,29 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
                   return placesCardBuilder(context, index);
                 }),
           ),
-                  Align(alignment: Alignment.bottomCenter,
-         child: FloatingActionButton(
-        onPressed: _getLocation,
-        tooltip: 'Get Location',
-        child: Icon(Icons.my_location),
-        ),
-       
-        ),
-        Align(alignment: Alignment.bottomRight,
-         child: FloatingActionButton.extended(
-            onPressed: (){_checkSpots(3000);},
-            label: Text('Places Nearby'),
-            icon: Icon(Icons.place),
+          Container(
+            margin: EdgeInsetsDirectional.fromSTEB(0, 0, 10, 10),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FloatingActionButton(
+                onPressed: _getLocation,
+                tooltip: 'Get Location',
+                child: Icon(Icons.my_location),
+              ),
             ),
-       
-        ),
+          ),
+          Container(
+            margin: EdgeInsetsDirectional.fromSTEB(0, 120, 10, 0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FloatingActionButton(
+                onPressed: () {
+                  _checkSpots(3000);
+                },
+                child: Icon(Icons.local_parking),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -228,7 +233,8 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
             setState(() {
               _suggestedList = [];
             });
-            _checkSpots(5000,result[0].position.latitude, result[0].position.longitude);
+            _checkSpots(5000, result[0].position.latitude,
+                result[0].position.longitude);
           });
         },
       ),
