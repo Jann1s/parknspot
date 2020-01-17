@@ -6,9 +6,18 @@ const googleMapsClient = require('@google/maps').createClient({
     Promise: Promise
   });
 const queryOverpass = require('@derhuerst/query-overpass');
+const { GeoCollectionReference, GeoFirestore, GeoQuery, GeoQuerySnapshot } = require('geofirestore');
+
+// Create a GeoCollection reference
 
 admin.initializeApp();
 admin.firestore().settings( { timestampsInSnapshots: true });
+
+//Testing geofirestore
+const geofirestore = new GeoFirestore(admin.firestore());
+const geocollection = geofirestore.collection('/locations');
+
+
 
 // This will create a User document with the onCreate trigger of Firebase Authentication
 
@@ -600,12 +609,19 @@ Output parameters:
   - Code : int
 */
 exports.getParkingLocations = functions.https.onCall((data,context) => {
-
+/* How to add a geoobject
+  geocollection.add({
+    name: 'Geofirestore',
+    score: 100,
+    // The coordinates field must be a GeoPoint!
+    coordinates: new firebase.firestore.GeoPoint(40.7589, -73.9851)
+  })
+*/
   var rad = data.radius;
   var lat = data.latitude; 
   var lon = data.longitude;
   var parkingSpots = [];
-  
+
   if(context.auth){
     if(rad && lat && lon)
     {
@@ -615,6 +631,7 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
 
       if(rad != NaN && lat != NaN && lon != NaN)
       {
+
         const getDataAsync = [];
         getDataAsync.push(
           googleMapsClient.placesNearby({
@@ -663,6 +680,29 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
               console.error(error);
           })
         );
+        getDataAsync.push(
+          // Get query (as Promise)
+          geocollection.near({ center: new admin.firestore.GeoPoint(lat, lon), radius: rad 
+          }).get().then((result) => {
+            if(!result.docs.empty){
+              result.docs.forEach(doc => {              
+                parkingSpots.push({
+                  'lat' : doc.data().coordinates.latitude,
+                  'lon' : doc.data().coordinates.longitude,
+                  'availability' : doc.data().availability
+                });
+              })
+              console.log(result.docs);
+              console.log('firestore done');
+            }else{
+              console.log('empty docs');
+            }
+          // All GeoDocument returned by GeoQuery, like the GeoDocument added above
+
+          }).catch(function(error){
+            console.log(error);
+          })
+        );
         // waits for all async operations in array to finish and returns the response
         return Promise.all(getDataAsync).then( () => {
           if(parkingSpots.length > 0){
@@ -701,3 +741,5 @@ exports.getParkingLocations = functions.https.onCall((data,context) => {
     }
   }
 });
+
+
