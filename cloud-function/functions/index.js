@@ -492,6 +492,45 @@ exports.unSetLocation = functions.https.onCall((data,context) => {
 
 /*
 Input parameters:
+  - context.auth.token : firebase.auth.DecodedIdToken
+Output parameters:
+  - Status : string
+  - Code : int
+*/
+exports.getUserLocation = functions.https.onCall((data, context) => {
+  if(context.auth)
+  {
+    let mail = context.auth.token.email;
+
+    let query = admin.firestore().collection('/users').where('email','==', mail);
+    return query.limit(1).get().then(querySnapshot => 
+    {
+      if(!querySnapshot.empty){
+        let doc_data = querySnapshot.docs[0].data().location;
+        return {
+          'Code': 100,
+          'Data': doc_data
+        }
+
+      }else{
+        console.log('User not found');
+        return{
+          'Code': 201,
+          'Status': 'Incorrect user'
+        }  
+      }
+    });
+  }else{
+    console.log('Unauth user');
+    return{
+      'Code': 201,
+      'Status': 'Incorrect parameters'
+    }  
+  }
+});
+
+/*
+Input parameters:
   - availability : int
   - lat : float
   - lon : float
