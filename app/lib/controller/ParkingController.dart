@@ -109,7 +109,6 @@ class ParkingController {
         return Position(latitude: resp.data['Data']['_latitude'], longitude: resp.data['Data']['_longitude']);
       }else{
         print('code != 100');
-        print (resp.data['Data']);
         return null;
       }
     }on CloudFunctionsException catch (e) {
