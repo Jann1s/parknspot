@@ -433,15 +433,26 @@ exports.unSetLocation = functions.https.onCall((data,context) => {
           'location' : admin.firestore.FieldValue.delete(),
           'timestamp' : timestamp
         }).then(function() {
-          let query = admin.firestore().collection('/locations').where('location','==', location);
+          let query = geocollection.where('coordinates','==', location);
           return query.limit(1).get().then(querySnapshot => 
           {
             if(querySnapshot.empty){
+              /**
+               * 
+               * Original 
               return admin.firestore().collection('/locations').add({
                 'availability': 1,
                 'location' : location,
                 'timestamp': timestamp,
                 'userRef': admin.firestore().collection('/users').doc(doc_id)
+              })
+               * 
+               */
+              return geocollection.add({
+                'availability' : 1,
+                'coordinates' : location,
+                'timestamp' : timestamp,
+                'userRef' : admin.firestore().collection('/users').doc(doc_id)
               }).then(function(){
                 return { 
                   'Code' : 100,
@@ -455,9 +466,9 @@ exports.unSetLocation = functions.https.onCall((data,context) => {
               })
             }else{
               let doc_id = querySnapshot.docs[0].id;
-              return  admin.firestore().collection('/locations').doc(doc_id).update({
+              return  geocollection.doc(doc_id).update({
                 'availability' : 1,
-                'location' : location,
+                'coordinates' : location,
                 'timestamp' : timestamp,
                 'userRef': admin.firestore().collection('/users').doc(doc_id)
               }).then(function() {
@@ -529,14 +540,14 @@ exports.setAvailability = functions.https.onCall((data, context) => {
         return query.limit(1).get().then(querySnapshot => {
           let user_doc_id = querySnapshot.docs[0].id;
 
-          let query = admin.firestore().collection('/locations').where('location','==', geo_point);
+          let query = geocollection.where('coordinates','==', geo_point);
           return query.limit(1).get().then(querySnapshot => 
           {
             if(!querySnapshot.empty){
               let location_doc_id = querySnapshot.docs[0].id;
-              return admin.firestore().collection('/locations').doc(location_doc_id).update({
+              return geocollection.doc(location_doc_id).update({
                 'availability' : availability,
-                'location' : geo_point,
+                'coordinates' : geo_point,
                 'timestamp' : timestamp,
                 'userRef' : admin.firestore().collection('/users').doc(user_doc_id)
               }).then(function() {
@@ -552,9 +563,16 @@ exports.setAvailability = functions.https.onCall((data, context) => {
                 }
               });
             }else{
+              /**
+               * Original
               return admin.firestore().collection('/locations').add({
+
+              })
+               * 
+               */
+              return geocollection.add({
                 'availability' : availability,
-                'location' : geo_point,
+                'coordinates' : geo_point,
                 'timestamp' : timestamp,
                 'userRef' : admin.firestore().collection('/users').doc(user_doc_id)
               }).then(function() {
