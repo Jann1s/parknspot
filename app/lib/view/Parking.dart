@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:map_launcher/map_launcher.dart';
 import 'package:parknspot/ThemeGlobals.dart';
 import 'package:parknspot/controller/ParkingController.dart';
 import 'package:parknspot/APIBackend.dart';
@@ -82,7 +84,18 @@ class ParkingState extends State<Parking> {
                     fontWeight: ThemeGlobals.mediumWeight,
                     fontFamily: 'Montserrat')),
             onPressed: () async {
-              if (_isLocationSet) {}
+              if (_isLocationSet) {
+                Position carPosition = await _parkingController.getUserLocation();
+                if (carPosition != null) {
+                  final availableMaps = await MapLauncher.installedMaps;
+
+                  await availableMaps.first.showMarker(
+                    coords: Coords(carPosition.latitude, carPosition.longitude),
+                    title: "My Car Location",
+                    description: "Navigate to your car.",
+                  );
+                }
+              }
             },
           )
         ],

@@ -96,4 +96,29 @@ class ParkingController {
       return false;
     }
   }
+
+  Future<Position> getUserLocation() async {
+    final HttpsCallable callable = CloudFunctions.instance.getHttpsCallable(
+      functionName: 'getUserLocation'
+    );
+
+    try {
+      HttpsCallableResult resp = await callable.call();
+
+      if(resp.data['Code'] == 100){
+        return Position(latitude: resp.data['Data']['_latitude'], longitude: resp.data['Data']['_longitude']);
+      }else{
+        print('code != 100');
+        return null;
+      }
+    }on CloudFunctionsException catch (e) {
+      print('CloudFunctionsException');
+      print(e);
+      return null;
+    }catch(e){
+      print('Generic exception');
+      print(e);
+      return null;
+    }
+  }
 }
