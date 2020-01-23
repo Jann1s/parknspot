@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:loading/loading.dart';
+import 'package:loading/indicator/ball_pulse_indicator.dart';
 
 import 'package:parknspot/controller/MapController.dart';
 import 'package:parknspot/ThemeGlobals.dart';
@@ -33,9 +35,32 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
 
   Completer<GoogleMapController> _googleMapsController = Completer();
 
+  static CameraPosition _startPosition;
+
   MyMapState() {
     _mapController = new MapController(this);
     _checkSpots(5000);
+    //_getStartLocation();
+  }
+
+  @override
+  void initState()
+  {
+    _getStartLocation();
+  }
+
+  void _getStartLocation() async
+  {
+    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      _startPosition = CameraPosition(
+        target: LatLng(
+          position.latitude,
+          position.longitude
+        ),
+        zoom: 14,
+      );
+    });
   }
 
   void _checkSpots(int radius, [double lat, double lon]) async {
@@ -48,11 +73,6 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
   }
 
   Completer<GoogleMapController> _controller = Completer();
-
-  static final CameraPosition _emmenPosition = CameraPosition(
-    target: LatLng(52.78586767371929, 6.8975849999999355),
-    zoom: 14,
-  );
 
 //Get places suggestions from Places API
   Future<Void> _getLocationResults(String input) async {
@@ -128,80 +148,92 @@ class MyMapState extends State<MyMap> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
+    
+    if(_startPosition == null)
+    {
+      return Container(child: Center(child: 
+        Loading(
+          indicator: BallPulseIndicator(),
+          size: 100,
+          color: Theme.of(context).primaryColor,
+        )
+      ));
+    }else{
     super.build(context);
-    return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          GoogleMap(
-            mapType: MapType.normal,
-            initialCameraPosition: _emmenPosition,
-            markers: _markers,
-            onMapCreated: (GoogleMapController controller) {
-              setState(() {
-                _controller.complete(controller);
-              });
-            },
-          ),
-          Positioned(
-              top: 15.0,
-              right: 15.0,
-              left: 15.0,
-              child: Container(
-                height: 50.0,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    borderRadius: ThemeGlobals.inputFieldRadius,
-                    color: ThemeGlobals.secondaryTextColor),
-                child: TextField(
-                  decoration: InputDecoration(
-                      hintText: 'Enter Address',
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.only(left: 15.0, top: 15.0),
-                      suffixIcon: IconButton(
-                          icon: Icon(Icons.search), onPressed: () {})),
-                  onChanged: (text) {
-                    _getLocationResults(text);
-                  },
+      return Scaffold(
+        body: Stack(
+          children: <Widget>[
+            GoogleMap(
+              mapType: MapType.normal,
+              initialCameraPosition: _startPosition,
+              markers: _markers,
+              onMapCreated: (GoogleMapController controller) {
+                setState(() {
+                  _controller.complete(controller);
+                });
+              },
+            ),
+            Positioned(
+                top: 15.0,
+                right: 15.0,
+                left: 15.0,
+                child: Container(
+                  height: 50.0,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                      borderRadius: ThemeGlobals.inputFieldRadius,
+                      color: ThemeGlobals.secondaryTextColor),
+                  child: TextField(
+                    decoration: InputDecoration(
+                        hintText: 'Enter Address',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.only(left: 15.0, top: 15.0),
+                        suffixIcon: IconButton(
+                            icon: Icon(Icons.search), onPressed: () {})),
+                    onChanged: (text) {
+                      _getLocationResults(text);
+                    },
+                  ),
+                )),
+            Container(
+              margin: EdgeInsets.fromLTRB(15.0, 65.0, 15.0, 0),
+              child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _suggestedList.length,
+                  itemBuilder: (
+                    BuildContext context,
+                    int index,
+                  ) {
+                    return placesCardBuilder(context, index);
+                  }),
+            ),
+            Container(
+              margin: EdgeInsetsDirectional.fromSTEB(0, 0, 10, 10),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FloatingActionButton(
+                  onPressed: _getLocation,
+                  tooltip: 'Get Location',
+                  child: Icon(Icons.my_location),
                 ),
-              )),
-          Container(
-            margin: EdgeInsets.fromLTRB(15.0, 65.0, 15.0, 0),
-            child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _suggestedList.length,
-                itemBuilder: (
-                  BuildContext context,
-                  int index,
-                ) {
-                  return placesCardBuilder(context, index);
-                }),
-          ),
-          Container(
-            margin: EdgeInsetsDirectional.fromSTEB(0, 0, 10, 10),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: FloatingActionButton(
-                onPressed: _getLocation,
-                tooltip: 'Get Location',
-                child: Icon(Icons.my_location),
               ),
             ),
-          ),
-          Container(
-            margin: EdgeInsetsDirectional.fromSTEB(0, 120, 10, 0),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: FloatingActionButton(
-                onPressed: () {
-                  _checkSpots(3000);
-                },
-                child: Icon(Icons.local_parking),
+            Container(
+              margin: EdgeInsetsDirectional.fromSTEB(0, 120, 10, 0),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FloatingActionButton(
+                  onPressed: () {
+                    _checkSpots(3000);
+                  },
+                  child: Icon(Icons.local_parking),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );  
+    }
   }
 
 //Suggestions card builder
