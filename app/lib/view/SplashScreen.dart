@@ -7,7 +7,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
-
   var bgColor = Colors.blue[300];
   String splashImage = 'assets/loginAnimation.gif';
   double splashImageSize = 268;
